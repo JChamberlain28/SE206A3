@@ -31,7 +31,15 @@ public class AppGUI extends Application{
 			e.printStackTrace();
 		}
 		_jarDir = runnableJar.getParentFile().getPath();
-
+		
+		CommandFactory command = new CommandFactory();
+		
+		// makes bash scripts executable (in case their permissions are incorrect)
+		try {
+			command.sendCommand("chmod +x *.sh", false);
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
 
 
 
