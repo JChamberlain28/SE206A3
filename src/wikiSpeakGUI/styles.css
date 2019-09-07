@@ -1,0 +1,20 @@
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color:  rgb(049,055,060);
+    }
+    
+
+
+.tab-label {
+    -fx-text-base-color: rgb(255,255,255);
+}
+
+
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track {
+    -fx-background-color: rgb(049,055,060);
+    -fx-border-color: transparent;
+
+}
+
+
+
