@@ -210,9 +210,11 @@ public class AppGUIController {
 		
 		// get selected creation name to play
 		String selection = creationList.getSelectionModel().getSelectedItem(); 
+		PlayController pc = new PlayController();
+		pc.passInfo(selection);
 		
 		try {
-			Parent ViewParent = FXMLLoader.load(getClass().getResource("MediaPlayerGUI.fxml"));
+			Parent ViewParent = FXMLLoader.load(getClass().getResource("PlayGUI.fxml"));
 			Scene ViewScene = new Scene(ViewParent,310,270);
 			
 			Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();

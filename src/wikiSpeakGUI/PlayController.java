@@ -18,9 +18,9 @@ import javafx.scene.media.MediaView;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
-public class MediaPlayerController{
-	private String filePath ="big_buck_bunny_1_minute.mp4";
-	File fileUrl = new File(filePath).getAbsoluteFile(); 
+public class PlayController{
+	private static String _filePath ="";
+	File fileUrl = new File(_filePath).getAbsoluteFile(); 
 	@FXML private Button playPauseB;
 	@FXML private Button forwardB;
 	@FXML private Button backwardsB;
@@ -72,6 +72,11 @@ public class MediaPlayerController{
 	@FXML
 	private void backwardsPress(ActionEvent event) {
 		mp.seek( mp.getCurrentTime().add( Duration.seconds(-3)) );
+	}
+	
+	public void passInfo(String nameOfCreation) {
+		_filePath = "creations/"+ nameOfCreation + ".mp4"; 
+
 	}
 	
 }
