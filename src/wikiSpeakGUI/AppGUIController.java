@@ -213,9 +213,11 @@ public class AppGUIController {
 		PlayController pc = new PlayController();
 		pc.passInfo(selection);
 		
+		
+		// switch to play scene
 		try {
 			Parent ViewParent = FXMLLoader.load(getClass().getResource("PlayGUI.fxml"));
-			Scene ViewScene = new Scene(ViewParent,310,270);
+			Scene ViewScene = new Scene(ViewParent);
 			
 			Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
 			window.setScene(ViewScene);
@@ -223,8 +225,6 @@ public class AppGUIController {
 		} catch (IOException e) {
 		}
 		
-		//Thread playCreationThread= new Thread(new PlayCreationTask(selection));
-		//playCreationThread.start();
 
 	}
 	
