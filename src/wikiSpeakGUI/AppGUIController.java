@@ -25,9 +25,8 @@ import javafx.stage.Stage;
 
 public class AppGUIController {
 
-
-
-
+	
+	SceneSwitcher ss = new SceneSwitcher();
 
 	// create section widgets
 	@FXML
@@ -209,22 +208,15 @@ public class AppGUIController {
 	private void handlePlayButton(Event event) {
 		
 		// get selected creation name to play
-		String selection = creationList.getSelectionModel().getSelectedItem(); 
+		String selection = creationList.getSelectionModel().getSelectedItem();
+		
+		
 		PlayController pc = new PlayController();
 		pc.passInfo(selection);
 		
 		
 		// switch to play scene
-		try {
-			Parent ViewParent = FXMLLoader.load(getClass().getResource("PlayGUI.fxml"));
-			Scene ViewScene = new Scene(ViewParent);
-			
-			Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
-			window.setScene(ViewScene);
-			window.show();
-		} catch (IOException e) {
-		}
-		
+		ss.newScene("PlayGUI.fxml",event);
 
 	}
 	
