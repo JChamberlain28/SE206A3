@@ -18,13 +18,16 @@ public class SceneSwitcher {
 	
 	
 	public Object newScene(String FXML, Event event) {
+		
+		// type object used as many different object types can be controllers.
+		// Casting is used outside this method only when the controller type is known.
 		Object controller=null;
 		try {
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(getClass().getResource(FXML));
-			controller = loader.getController();
 			Parent ViewParent;
 			ViewParent = loader.load();
+			controller = loader.getController();
 			Scene ViewScene = new Scene(ViewParent);
 			Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
 			window.setScene(ViewScene);

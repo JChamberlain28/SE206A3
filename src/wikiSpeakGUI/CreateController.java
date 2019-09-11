@@ -8,10 +8,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -20,7 +16,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 
 public class CreateController {
 
@@ -29,6 +24,7 @@ public class CreateController {
 	private String _tempDir;
 	private String _lineNo;
 	private String _wikitTerm;
+	private SceneSwitcher ss = new SceneSwitcher();
 
 
 
@@ -126,21 +122,13 @@ public class CreateController {
 		delDir.start();
 		
 		
-		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(getClass().getResource("AppGUI.fxml"));
-		Parent layout = loader.load();
-		
-		Scene scene = new Scene(layout);
-
-		// get the stage
-		Stage primaryStage = (Stage) (((Node) event.getSource()).getScene().getWindow());
-		primaryStage.setScene(scene);
+		ss.newScene("AppGUI.fxml", event);
 	}
 
 	
 	
 	@FXML
-	private void handleSubmitCreation(ActionEvent event) throws IOException, InterruptedException { // handle io exception?
+	private void handleSubmitCreation(ActionEvent event) throws IOException, InterruptedException {
 
 		
 		// abort flag cancels creation generation when set to true
@@ -222,19 +210,7 @@ public class CreateController {
 		// start creation generation in the background and return to main app GUI
 		if (!abort) {
 			
-			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(getClass().getResource("AppGUI.fxml"));
-
-			
-			Parent layout = loader.load();
-			
-			Scene scene = new Scene(layout);
-
-			// get the stage
-			Stage primaryStage = (Stage) (((Node) event.getSource()).getScene().getWindow());
-			primaryStage.setScene(scene);
-			
-			AppGUIController appGUIcontroller = loader.getController();
+			AppGUIController appGUIcontroller = (AppGUIController)ss.newScene("AppGUI.fxml", event);
 			Thread generateCreation= new Thread(new GenerateCreationTask(lineNoSelect, name, _tempDir, _wikitTerm, appGUIcontroller));
 			generateCreation.start();
 		}

@@ -8,10 +8,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -21,7 +17,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 
 public class AppGUIController {
 
@@ -74,7 +69,7 @@ public class AppGUIController {
 				+ " -fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
 		creationList.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
-		updateAllLists();
+		updateCreationList();
 
 		// block characters that are not accepted by wikit command
 		wikitInput.textProperty().addListener(new ChangeListener<String>() {
@@ -153,24 +148,16 @@ public class AppGUIController {
 		}
 		
 		
-		// generate and switch scene to create scene
-		FXMLLoader loaderCreate = new FXMLLoader();
-		loaderCreate.setLocation(getClass().getResource("CreateGUI.fxml"));
-		Parent layoutCreate = loaderCreate.load();
-		CreateController createController = loaderCreate.getController();
 		
+		// switch scene to create view (casting to create controller as type of object known)
+		CreateController createController = (CreateController)ss.newScene("CreateGUI.fxml", event);
+		
+
 		// pass numbered description to be displayed in create view
 		String searchTerm = wikitInput.getText();
 		createController.passInfo(numberedDescriptionOutput.get(0), tempFolder, searchTerm);
 		createController.updateCount();
 		
-		
-
-		Scene sceneCreate = new Scene(layoutCreate);
-
-		// get the stage
-		Stage primaryStage = (Stage) (((Node) event.getSource()).getScene().getWindow());
-		primaryStage.setScene(sceneCreate);
 		
 
 
@@ -210,7 +197,7 @@ public class AppGUIController {
 		// get selected creation name to play
 		String selection = creationList.getSelectionModel().getSelectedItem();
 		
-		
+		// selection field is static in PlayController
 		PlayController pc = new PlayController();
 		pc.passInfo(selection);
 		
@@ -249,7 +236,7 @@ public class AppGUIController {
 		if (result.get() == buttonTypeYes){
 			CommandFactory deleteCommand = new CommandFactory();
 			deleteCommand.sendCommand("rm \"creations/" + selection + ".mp4\"", false);
-			updateAllLists();
+			updateCreationList();
 		} else {
 			deleteButton.setDisable(false);
 			playButton.setDisable(false);
@@ -269,7 +256,7 @@ public class AppGUIController {
 
 	
 	// helper function to update all lists
-	public void updateAllLists() {
+	public void updateCreationList() {
 		Thread updateCreationList = new Thread(new UpdateCreationListTask(creationList, deleteButton, playButton, creationNoText));
 		updateCreationList.start();
 	}

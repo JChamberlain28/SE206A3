@@ -43,7 +43,7 @@ public class GenerateCreationTask extends Task<Void>  {
 
 			@Override
 			public void run() {
-				_controllerForUpdate.updateAllLists();
+				_controllerForUpdate.updateCreationList();
 				
 			}
 			
