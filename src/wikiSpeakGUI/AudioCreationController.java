@@ -19,7 +19,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.text.Text;
 
-public class CreateController {
+public class AudioCreationController {
 
 
 	private String _numberedText;
@@ -44,8 +44,6 @@ public class CreateController {
 	@FXML
 	private TextField noLines;
 
-	@FXML
-	private TextField nameInput;
 
 	@FXML
 	private Text lineNoMessage;
@@ -60,21 +58,8 @@ public class CreateController {
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
 		noLines.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
-		nameInput.setStyle("-fx-control-inner-background: rgb(049,055,060); "
-				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
 		
-		
-		// removes characters that cause hidden file creation 
-		nameInput.textProperty().addListener(new ChangeListener<String>() {
 
-			@Override
-			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-				if (!newValue.matches("[^\\\\./$&:;]*")) {
-					nameInput.setText(newValue.replaceAll("[\\\\./$&:;]", ""));
-				}
-			}
-		});
-		
 		
 		// disallow non-numeric characters
 		noLines.textProperty().addListener(new ChangeListener<String>() {
@@ -138,7 +123,7 @@ public class CreateController {
 		boolean abort = false;
 
 		String lineNoSelect = noLines.getText();
-		String name = nameInput.getText();
+
 		
 		
 
@@ -147,7 +132,6 @@ public class CreateController {
 
 		CommandFactory command = new CommandFactory();
 		
-		List<String> nameCheckResult = command.sendCommand("./nameCheck.sh \"" + name + "\"", false);
 		
 
 		// error checking
@@ -174,60 +158,29 @@ public class CreateController {
 			}	
 		}
 		
-		
-		// checks supplied creation name has valid file name (informs user if invalid)
-		// (as some characters are blocked, only case this triggers is no name or white space only)
-		if (nameCheckResult.get(0).equals("Invalid Name") || (name == null)) {
-			abort = true;
-			Alert popup = new Alert(AlertType.INFORMATION);
-			popup.setTitle("Invalid Name");
-			popup.setHeaderText("The name \"" + name + "\" is invalid");
-			popup.showAndWait();
-			abort = true;
-		}	
-		
-		// Informs user if creation with same name exists
-		else if (nameCheckResult.get(0).equals("Exists")) {
-			Alert popup = new Alert(AlertType.CONFIRMATION);
-			popup.setTitle("Creation Exists");
-			popup.setHeaderText("A creation with the name \"" + name + "\" aleardy exists");
-			
-			ButtonType buttonTypeYes = new ButtonType("Overwrite");
-			ButtonType buttonTypeNo = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
 
-			popup.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
-					
-			Optional<ButtonType> result = popup.showAndWait();
-			
-			// deletes file so the new creation can be made
-			if (result.get() == buttonTypeYes){
-				command.sendCommand("rm \"creations/" + name + ".mp4\"", false);
-			} 
-			else {
-				abort = true;
-			}
-		}
 		
 		
 		
-		// start creation generation in the background and return to main app GUI
+		// start audio generation and switch to video customisation view
 		if (!abort) {
 			
 			GenerateAudioTask task = new GenerateAudioTask(lineNoSelect, _tempDir);
 			Thread generateAudio = new Thread(task);
 			generateAudio.start();
 			
-			AppGUIController appGUIcontroller = (AppGUIController)ss.newScene("AppGUI.fxml", event);
+			VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
 			
 			// proceed with video generation upon audio generation completion ####
 			// (temporary code until video generation moved to another controller) ####
+			// gsin387 <- please make gui wait till audio generation complete before switching ####
+			// can change this near end if need be ####
 			task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			    @Override
 			    public void handle(WorkerStateEvent t) {
 			        audioGenResult = task.getValue();
 			        
-					Thread generateCreation= new Thread(new GenerateVideoTask(audioGenResult, name, _tempDir, _wikitTerm, appGUIcontroller));
-					generateCreation.start();
+			        videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult);
 			    }
 			});
 			

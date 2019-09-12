@@ -150,7 +150,7 @@ public class AppGUIController {
 		
 		
 		// switch scene to create view (casting to create controller as type of object known)
-		CreateController createController = (CreateController)ss.newScene("CreateGUI.fxml", event);
+		AudioCreationController createController = (AudioCreationController)ss.newScene("AudioCreationGUI.fxml", event);
 		
 
 		// pass numbered description to be displayed in create view
