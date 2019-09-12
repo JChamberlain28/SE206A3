@@ -5,17 +5,17 @@ import java.util.List;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 
-public class GenerateCreationTask extends Task<Void>  {
+public class GenerateVideoTask extends Task<Void>  {
 	
 	
 	private String _creationName;
-	private String _noOfLines;
+	private List<String> _AudioGenResult;
 	private String _tempDir;
 	private String _wikitTerm;
 	private AppGUIController _controllerForUpdate;
 
-	public GenerateCreationTask(String noOfLines, String creationName, String tempDir, String wikitTerm, AppGUIController controllerForUpdate) {
-		_noOfLines = noOfLines;
+	public GenerateVideoTask(List<String> AudioGenResult, String creationName, String tempDir, String wikitTerm, AppGUIController controllerForUpdate) {
+		_AudioGenResult = AudioGenResult;
 		_creationName = creationName;
 		_tempDir = tempDir;
 		_wikitTerm = wikitTerm;
@@ -25,10 +25,10 @@ public class GenerateCreationTask extends Task<Void>  {
 	@Override
 	protected Void call() throws Exception {
 		CommandFactory generationScript = new CommandFactory();
-			List<String> result = generationScript.sendCommand("./generateAudio.sh " + _noOfLines + " " + _tempDir, false);
+			
 			
 			// audio generation script returns audio duration
-			double audioTime = Double.parseDouble(result.get(0));
+			double audioTime = Double.parseDouble(_AudioGenResult.get(0));
 			audioTime = audioTime + 1; // make video 1 second longer than audio
 			
 			generationScript.sendCommand("./generateVid.sh \"" + _creationName + "\" " + _tempDir + " \"" + _wikitTerm + "\" " + audioTime, false);

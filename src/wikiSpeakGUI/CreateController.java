@@ -6,7 +6,9 @@ import java.util.Optional;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -24,6 +26,7 @@ public class CreateController {
 	private String _tempDir;
 	private String _lineNo;
 	private String _wikitTerm;
+	private static List<String> audioGenResult;
 	private SceneSwitcher ss = new SceneSwitcher();
 
 
@@ -210,9 +213,25 @@ public class CreateController {
 		// start creation generation in the background and return to main app GUI
 		if (!abort) {
 			
+			GenerateAudioTask task = new GenerateAudioTask(lineNoSelect, _tempDir);
+			Thread generateAudio = new Thread(task);
+			generateAudio.start();
+			
 			AppGUIController appGUIcontroller = (AppGUIController)ss.newScene("AppGUI.fxml", event);
-			Thread generateCreation= new Thread(new GenerateCreationTask(lineNoSelect, name, _tempDir, _wikitTerm, appGUIcontroller));
-			generateCreation.start();
+			
+			// proceed with video generation upon audio generation completion ####
+			// (temporary code until video generation moved to another controller) ####
+			task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			    @Override
+			    public void handle(WorkerStateEvent t) {
+			        audioGenResult = task.getValue();
+			        
+					Thread generateCreation= new Thread(new GenerateVideoTask(audioGenResult, name, _tempDir, _wikitTerm, appGUIcontroller));
+					generateCreation.start();
+			    }
+			});
+			
+
 		}
 
 
