@@ -10,8 +10,11 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 
 public class VideoCreationController {
@@ -26,6 +29,15 @@ public class VideoCreationController {
 
 	@FXML
 	private TextField nameInput;
+	
+	@FXML
+	private ComboBox<String> noOfImages;
+	
+	@FXML
+	private ListView imageView;
+	
+	@FXML
+	private Button submitImageSelect;
 
 
 
@@ -34,6 +46,12 @@ public class VideoCreationController {
 
 		nameInput.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
+		imageView.setStyle("-fx-control-inner-background: rgb(049,055,060); "
+				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
+		noOfImages.setStyle("-fx-background-color: rgb(049,055,060); -fx-control-inner-background: rgb(049,055,060); "
+				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
+		noOfImages.getItems().addAll("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+		noOfImages.getSelectionModel().select(0);
 
 		// removes characters that cause hidden file creation 
 		nameInput.textProperty().addListener(new ChangeListener<String>() {
@@ -56,6 +74,14 @@ public class VideoCreationController {
 	}
 
 
+	
+	@FXML
+	private void handleGetImage() {
+		String noOfImagesSelect = noOfImages.getSelectionModel().getSelectedItem();
+		System.out.println(noOfImagesSelect);
+		Thread thread = new Thread(new GetImagesTask(_wikitTerm, submitImageSelect, noOfImagesSelect, imageView, _tempDir));
+		thread.start();
+	}
 
 
 
