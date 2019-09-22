@@ -77,8 +77,6 @@ public class PlayController {
 	@FXML
 	// Changes scene to main scene
 	private void handleBackToMainView(ActionEvent event) {
-		
-
 		mp.stop();
 		ss.newScene("AppGUI.fxml", event);
 	}

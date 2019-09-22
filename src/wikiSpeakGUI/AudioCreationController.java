@@ -2,7 +2,6 @@ package wikiSpeakGUI;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -12,11 +11,10 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.text.Text;
 
 public class AudioCreationController {
@@ -47,13 +45,20 @@ public class AudioCreationController {
 
 	@FXML
 	private Text lineNoMessage;
-
-
+	
+	@FXML
+	private Button speakButton;
+	
+	@FXML
+	private Button addButton;
+	
+	@FXML
+	private ListView<String> selectedAudio;
 
 	@FXML
 	private void initialize() {
 		numberedTextArea.setWrapText(true);
-		numberedTextArea.setEditable(false);
+		numberedTextArea.setEditable(true);
 		numberedTextArea.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
 		noLines.setStyle("-fx-control-inner-background: rgb(049,055,060); "
@@ -124,16 +129,8 @@ public class AudioCreationController {
 
 		String lineNoSelect = noLines.getText();
 
-		
-		
-
-		
-
-
 		CommandFactory command = new CommandFactory();
 		
-		
-
 		// error checking
 		
 		// checks user didn't leave line number selection field empty (prompts user if they have)
@@ -193,9 +190,31 @@ public class AudioCreationController {
 
 	}
 
-
-
-
-
-
+	
+	@FXML
+	private void handleSpeakPress(ActionEvent event){ 
+		String lol = numberedTextArea.getSelectedText();
+		lol = lol.replace("\"", " ");
+		String cmd = "echo \"" + lol + "\" > selectedText.txt";
+		CommandFactory command = new CommandFactory();
+		new Thread(() -> {
+			speakButton.setDisable(true);
+			try {
+				command.sendCommand(cmd , false);
+				command.sendCommand("text2wave selectedText.txt -o audio123.wav" , false);
+				command.sendCommand("aplay audio123.wav" , false);
+				speakButton.setDisable(false);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}).start();
+	}
+	
+	@FXML
+	private void handleAddPress(ActionEvent event){ 
+		String lol = numberedTextArea.getSelectedText();
+		selectedAudio.getItems().add(lol);
+	}
 }
