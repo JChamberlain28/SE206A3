@@ -1,3 +1,10 @@
 #!/bin/bash
 
-curl https://www.flickr.com/search/?text=$1 2> /dev/null | egrep 'live\.staticflickr[^"]*[a-zA-Z0-9]{2}\.jpg' -o | head -$2  | sed "s/^/http:\/\//g" | xargs wget -P ./$3
+
+# set multi word searches to correct format
+word=$(echo "$1" | sed "s/ /%20/g")
+
+
+
+curl "https://www.flickr.com/search/?text=$word" 2> /dev/null | grep -oh '//live.staticflickr.com/.*jpg' | head -$2  | sed "s/^/http:/g" | xargs wget -P ./$3
+
