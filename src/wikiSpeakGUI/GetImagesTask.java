@@ -73,7 +73,6 @@ public class GetImagesTask extends Task<Void>{
 					Image ImageObject = new Image((file.toURI().toString()) + _tempDir + "/" + imageName);
 					ImageView imageView = new ImageView(ImageObject);
 					imageView.setFitHeight(180);
-					imageView.setFitWidth(180);
 					
 					// instantiates custom image class used for setting TableView cell value type
 					CellImage cell = new CellImage(imageView);
