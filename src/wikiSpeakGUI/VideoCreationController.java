@@ -72,7 +72,7 @@ public class VideoCreationController {
 		
 		
 
-
+		imageCol.setStyle( "-fx-alignment: CENTER;");
 		nameInput.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
 		imageView.setStyle("-fx-control-inner-background: rgb(049,055,060); "
