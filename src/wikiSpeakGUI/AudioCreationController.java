@@ -1,6 +1,7 @@
 package wikiSpeakGUI;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.beans.value.ChangeListener;
@@ -25,7 +26,9 @@ public class AudioCreationController {
 	private String _lineNo;
 	private String _wikitTerm;
 	private static List<String> audioGenResult;
+	private static ArrayList<String> audioSentences=new ArrayList<String>();
 	private SceneSwitcher ss = new SceneSwitcher();
+	private int count=0;
 
 
 
@@ -45,12 +48,21 @@ public class AudioCreationController {
 
 	@FXML
 	private Text lineNoMessage;
-	
+
 	@FXML
 	private Button speakButton;
-	
+
 	@FXML
 	private Button addButton;
+
+	@FXML
+	private Button delButton;
+	
+	@FXML
+	private Button upButton;
+	
+	@FXML
+	private Button downButton;
 	
 	@FXML
 	private ListView<String> selectedAudio;
@@ -63,9 +75,9 @@ public class AudioCreationController {
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
 		noLines.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
-		
 
-		
+
+
 		// disallow non-numeric characters
 		noLines.textProperty().addListener(new ChangeListener<String>() {
 
@@ -94,7 +106,7 @@ public class AudioCreationController {
 
 	}
 
-	
+
 	// updates text that describes line number field with correct line limit
 	public void updateCount() throws IOException, InterruptedException {
 		CommandFactory command = new CommandFactory();
@@ -109,30 +121,30 @@ public class AudioCreationController {
 	@FXML
 	// Changes scene to main scene
 	private void handleBackToMainView(ActionEvent event) throws IOException { // handle io exception?
-		
+
 		// removes temp directory to prevent left over files
 		Thread delDir = new Thread(new RemoveDirTask(_tempDir));
 		delDir.start();
-		
-		
+
+
 		ss.newScene("AppGUI.fxml", event);
 	}
 
-	
-	
+
+
 	@FXML
 	private void handleSubmitCreation(ActionEvent event) throws IOException, InterruptedException {
 
-		
+
 		// abort flag cancels creation generation when set to true
 		boolean abort = false;
 
 		String lineNoSelect = noLines.getText();
 
 		CommandFactory command = new CommandFactory();
-		
+
 		// error checking
-		
+
 		// checks user didn't leave line number selection field empty (prompts user if they have)
 		if (lineNoSelect.isEmpty()) {
 			Alert popup = new Alert(AlertType.INFORMATION);
@@ -145,7 +157,7 @@ public class AudioCreationController {
 			// checks line number selection is not outside the valid line range (prompts user if so)
 			int lineNoSelectInt = Integer.parseInt(lineNoSelect);
 			int lineNoLimitInt = Integer.parseInt(_lineNo);
-			
+
 			if ((lineNoSelectInt > lineNoLimitInt) || (lineNoSelectInt < 1)) {
 				Alert popup = new Alert(AlertType.INFORMATION);
 				popup.setTitle("Invalid Line Selection");
@@ -154,33 +166,59 @@ public class AudioCreationController {
 				abort = true;
 			}	
 		}
-		
 
-		
-		
-		
+
+
+
+
 		// start audio generation and switch to video customisation view
 		if (!abort) {
-			
+
 			GenerateAudioTask task = new GenerateAudioTask(lineNoSelect, _tempDir);
-			Thread generateAudio = new Thread(task);
+			Thread generateAudio = new Thread(task); 
 			generateAudio.start();
 			
-			VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
+			String order = "";
+			for(int i=0; i<selectedAudio.getItems().size();i++) {
+				if (i==(selectedAudio.getItems().size() - 1)) {
+					order = order + "audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3";
+					break;
+				}
+				order = order + "audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3 ";
+			}
+			order = order.replace(" ", "|");
+			System.out.println(order);
+			String cmd = "ffmpeg -i \"concat:"+order+"\" -acodec copy final.mp3";
 			
+			new Thread(() -> {
+				submitCreationButton.setDisable(true);
+				try {
+					command.sendCommand(cmd , false);
+					command.sendCommand("rm audio*.mp3" , false);
+					submitCreationButton.setDisable(false);
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}).start();
+			
+			
+			VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
+
 			// proceed with video generation upon audio generation completion ####
 			// (temporary code until video generation moved to another controller) ####
 			// gsin387 <- please make gui wait till audio generation complete before switching ####
 			// can change this near end if need be ####
 			task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			    @Override
-			    public void handle(WorkerStateEvent t) {
-			        audioGenResult = task.getValue();
-			        
-			        videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult);
-			    }
+				@Override
+				public void handle(WorkerStateEvent t) {
+					audioGenResult = task.getValue();
+
+					videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult);
+				}
 			});
-			
+
 
 		}
 
@@ -190,7 +228,7 @@ public class AudioCreationController {
 
 	}
 
-	
+
 	@FXML
 	private void handleSpeakPress(ActionEvent event){ 
 		String lol = numberedTextArea.getSelectedText();
@@ -201,9 +239,39 @@ public class AudioCreationController {
 			speakButton.setDisable(true);
 			try {
 				command.sendCommand(cmd , false);
-				command.sendCommand("text2wave selectedText.txt -o audio123.wav" , false);
-				command.sendCommand("aplay audio123.wav" , false);
+				command.sendCommand("text2wave selectedText.txt -o speakAudio.wav" , false);
+				command.sendCommand("aplay speakAudio.wav" , false);
+				command.sendCommand("rm speakAudio.wav" , false);
+				command.sendCommand("rm selectedText.txt" , false);
 				speakButton.setDisable(false);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}).start();
+	}
+
+	@FXML
+	private void handleAddPress(ActionEvent event){ 
+		String lol = numberedTextArea.getSelectedText();
+		selectedAudio.getItems().add(lol);
+		audioSentences.add(lol);
+		String name = "audio" + count;
+		count++;
+		lol = lol.replace("\"", " ");
+		String cmd = "echo \"" + lol + "\" > selectedText.txt";
+		CommandFactory command = new CommandFactory();
+		new Thread(() -> {
+			addButton.setDisable(true);
+			try {
+				command.sendCommand(cmd , false);
+				command.sendCommand("text2wave selectedText.txt -o "+ name +".wav" , false);
+				command.sendCommand("lame " + name +".wav " + name +".mp3" , false);
+				command.sendCommand("rm selectedText.txt" , false);
+				command.sendCommand("rm *.wav" , false);
+				addButton.setDisable(false);
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {
@@ -213,8 +281,34 @@ public class AudioCreationController {
 	}
 	
 	@FXML
-	private void handleAddPress(ActionEvent event){ 
-		String lol = numberedTextArea.getSelectedText();
-		selectedAudio.getItems().add(lol);
+	private void handleDelPress(ActionEvent event){ 
+		String lol=selectedAudio.getSelectionModel().getSelectedItem();
+		selectedAudio.getItems().remove(lol);
 	}
+	
+	@FXML
+	private void upPress(ActionEvent event){ 
+		int order = selectedAudio.getItems().indexOf(selectedAudio.getSelectionModel().getSelectedItem());
+		if (order <= 0) {
+			
+		}else {
+			String temp = selectedAudio.getItems().get(order - 1);
+			selectedAudio.getItems().set(order - 1, selectedAudio.getSelectionModel().getSelectedItem());
+			selectedAudio.getItems().set(order, temp);
+		}
+	
+	}
+	
+	@FXML
+	private void downPress(ActionEvent event){ 
+		int order = selectedAudio.getItems().indexOf(selectedAudio.getSelectionModel().getSelectedItem());
+		if (order + 1 >= selectedAudio.getItems().size()) {
+			
+		}else {
+			String temp = selectedAudio.getItems().get(order + 1);
+			selectedAudio.getItems().set(order + 1, selectedAudio.getSelectionModel().getSelectedItem());
+			selectedAudio.getItems().set(order, temp);
+		}
+	}
+	
 }
