@@ -20,6 +20,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -60,7 +61,10 @@ public class VideoCreationController {
 
 	
 	@FXML
-	private Button submitImageSelect;
+	private Button submitCreationButton;
+	
+	@FXML
+	private Button backButton;
 	
 	
 	
@@ -71,7 +75,6 @@ public class VideoCreationController {
 	private void initialize() {
 		
 		
-
 		imageCol.setStyle( "-fx-alignment: CENTER;");
 		nameInput.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
@@ -112,11 +115,15 @@ public class VideoCreationController {
 	private void handleGetImage() {
 		String noOfImagesSelect = noOfImages.getSelectionModel().getSelectedItem();
 		System.out.println(noOfImagesSelect);
-		Thread thread = new Thread(new GetImagesTask(_wikitTerm, submitImageSelect, noOfImagesSelect, imageView, imageCol, _tempDir));
+		Thread thread = new Thread(new GetImagesTask(_wikitTerm, submitCreationButton, noOfImagesSelect, imageView, imageCol, _tempDir));
 		thread.start();
 	}
 
-
+	
+	@FXML
+	private void handleBackButton(ActionEvent event) {
+		ss.newScene("AudioCreationGUI.fxml", event);
+	}
 
 
 	@FXML

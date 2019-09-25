@@ -32,7 +32,6 @@ public class GenerateVideoTask extends Task<Void>  {
 			audioTime = audioTime + 1; // make video 1 second longer than audio
 			
 			generationScript.sendCommand("./generateVid.sh \"" + _creationName + "\" " + _tempDir + " \"" + _wikitTerm + "\" " + audioTime, false);
-		
 		return null;
 	}
 	

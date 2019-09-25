@@ -25,6 +25,7 @@ public class PlayController {
 	public void initialize(){
 		playPauseB.setMinWidth(40);
 		start();
+		
 	}
 	
 	public void start(){
@@ -32,6 +33,7 @@ public class PlayController {
 		mp= new MediaPlayer(media);
 		mv.setMediaPlayer(mp);
 		mp.setAutoPlay(true);
+		mp.setVolume(100);
 		
 		
 		

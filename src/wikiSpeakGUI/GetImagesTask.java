@@ -20,7 +20,7 @@ import javafx.scene.image.ImageView;
 public class GetImagesTask extends Task<Void>{
 	
 	private String _wikitTerm;
-	private Button _submitImageSelect;
+	private Button _submitCreationButton;
 	private String _noOfImages;
 	private TableView<CellImage> _imageView;
 	private String _tempDir;
@@ -29,9 +29,9 @@ public class GetImagesTask extends Task<Void>{
 
 	
 	
-	public GetImagesTask(String wikitTerm, Button submitImageSelect, String noOfImages, TableView<CellImage> imageView, TableColumn<CellImage, ImageView> colForUpdate, String tempDir) {
+	public GetImagesTask(String wikitTerm, Button submitCreationButton, String noOfImages, TableView<CellImage> imageView, TableColumn<CellImage, ImageView> colForUpdate, String tempDir) {
 		_wikitTerm = wikitTerm;
-		_submitImageSelect = submitImageSelect;
+		_submitCreationButton = submitCreationButton;
 		_noOfImages = noOfImages;
 		_imageView = imageView;
 		_tempDir = tempDir;
@@ -45,8 +45,7 @@ public class GetImagesTask extends Task<Void>{
 		command.sendCommand("rm ./" + _tempDir + "/*.jpg", false);
 		
 		// will need loading animation for this ####
-		List<String> list = command.sendCommand("./downloadImages.sh \"" + _wikitTerm + "\" " + _noOfImages + " " + _tempDir, false);
-		System.out.println(list.get(1));
+		command.sendCommand("./downloadImages.sh \"" + _wikitTerm + "\" " + _noOfImages + " " + _tempDir, false);
 		
 		
 		// create list of images to update TableView with
