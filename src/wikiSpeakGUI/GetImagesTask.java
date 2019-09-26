@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import api.FlickrAPI;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -45,7 +46,7 @@ public class GetImagesTask extends Task<Void>{
 		command.sendCommand("rm ./" + _tempDir + "/*.jpg", false);
 		
 		// will need loading animation for this ####
-		command.sendCommand("./downloadImages.sh \"" + _wikitTerm + "\" " + _noOfImages + " " + _tempDir, false);
+		FlickrAPI.downloadImages(_wikitTerm, _tempDir, Integer.parseInt(_noOfImages));
 		
 		
 		// create list of images to update TableView with
@@ -72,6 +73,7 @@ public class GetImagesTask extends Task<Void>{
 					Image ImageObject = new Image((file.toURI().toString()) + _tempDir + "/" + imageName);
 					ImageView imageView = new ImageView(ImageObject);
 					imageView.setFitHeight(180);
+					imageView.setPreserveRatio(true);
 					
 					// instantiates custom image class used for setting TableView cell value type
 					CellImage cell = new CellImage(imageView);

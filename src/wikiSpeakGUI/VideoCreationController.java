@@ -36,6 +36,7 @@ import javafx.scene.control.ButtonBar.ButtonData;
 
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
+import api.FlickrAPI;
 
 public class VideoCreationController {
 

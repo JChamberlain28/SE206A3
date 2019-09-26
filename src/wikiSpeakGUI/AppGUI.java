@@ -53,7 +53,7 @@ public class AppGUI extends Application{
 		CommandFactory command = new CommandFactory();
 		command.sendCommand("mkdir -p creations" , false);
 
-		primaryStage.setTitle("Wiki Speak");
+		primaryStage.setTitle("VARpedia");
 
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(getClass().getResource("AppGUI.fxml"));
