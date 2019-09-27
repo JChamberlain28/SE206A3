@@ -79,6 +79,11 @@ public class AudioCreationController {
 
 	@FXML
 	private void initialize() {
+		previewButton.setDisable(true);
+		submitCreationButton.setDisable(true);
+		delButton.setDisable(true);
+		upButton.setDisable(true);
+		downButton.setDisable(true);
 		numberedTextArea.setWrapText(true);
 		numberedTextArea.setEditable(true);
 		numberedTextArea.setStyle("-fx-control-inner-background: rgb(049,055,060); "
@@ -276,6 +281,8 @@ public class AudioCreationController {
 			CommandFactory command = new CommandFactory();
 			new Thread(() -> {
 				speakButton.setDisable(true);
+				previewButton.setDisable(true);
+				submitCreationButton.setDisable(true);
 				try {
 					command.sendCommand(cmd , false);
 					command.sendCommand("text2wave -o "+ _tempDir +"/speakAudio.wav selectedText.txt " + voice , false);
@@ -283,6 +290,8 @@ public class AudioCreationController {
 					command.sendCommand("rm " + _tempDir +"/speakAudio.wav" , false);
 					command.sendCommand("rm selectedText.txt" , false);
 					speakButton.setDisable(false);
+					previewButton.setDisable(false);
+					submitCreationButton.setDisable(false);
 
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -308,6 +317,11 @@ public class AudioCreationController {
 			popup.setHeaderText("Please selected between 1-40 words");
 			popup.show();
 		}else {
+			previewButton.setDisable(false);
+			submitCreationButton.setDisable(false);
+			delButton.setDisable(false);
+			upButton.setDisable(false);
+			downButton.setDisable(false);
 			while (selectedAudio.getItems().contains(lol)) {
 				lol = lol + " ";
 			}
@@ -341,6 +355,13 @@ public class AudioCreationController {
 	private void handleDelPress(ActionEvent event){ 
 		String lol=selectedAudio.getSelectionModel().getSelectedItem();
 		selectedAudio.getItems().remove(lol);
+		if(selectedAudio.getItems().isEmpty()) {
+			previewButton.setDisable(true);
+			submitCreationButton.setDisable(true);
+			delButton.setDisable(true);
+			upButton.setDisable(true);
+			downButton.setDisable(true);
+		}
 	}
 
 	@FXML
@@ -375,6 +396,11 @@ public class AudioCreationController {
 			previewButton.setDisable(true);
 			speakButton.setDisable(true);
 			addButton.setDisable(true);
+			submitCreationButton.setDisable(true);
+			delButton.setDisable(true);
+			upButton.setDisable(true);
+			downButton.setDisable(true);
+			cancelButton.setDisable(true);
 			for(int i=0; i<selectedAudio.getItems().size();i++) {
 				String cmd = "aplay "+ _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".wav";
 				try {
@@ -386,6 +412,11 @@ public class AudioCreationController {
 			previewButton.setDisable(false);
 			speakButton.setDisable(false);
 			addButton.setDisable(false);
+			submitCreationButton.setDisable(false);
+			delButton.setDisable(false);
+			upButton.setDisable(false);
+			downButton.setDisable(false);
+			cancelButton.setDisable(false);
 		}).start();;
 	}
 
