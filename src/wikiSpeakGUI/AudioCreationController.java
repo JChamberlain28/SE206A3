@@ -24,20 +24,22 @@ public class AudioCreationController {
 
 
 	private String _numberedText;
-	private String _tempDir;
+	private static String _tempDir;
 	private String _lineNo;
 	private String _wikitTerm;
 	private static List<String> audioGenResult;
 	private static ArrayList<String> audioSentences=new ArrayList<String>();
+	private static ArrayList<String> savedAudio=new ArrayList<String>();
+	private static String savedText;
 	private SceneSwitcher ss = new SceneSwitcher();
-	private int count=0;
+	private int count=savedAudio.size();
 
 
 
 
 	@FXML
 	private Button cancelButton;
-	
+
 	@FXML
 	private Button previewButton;
 
@@ -50,12 +52,12 @@ public class AudioCreationController {
 	@FXML
 	private TextArea numberedTextArea;
 
-	@FXML
-	private TextField noLines;
+	//@FXML
+	//private TextField noLines;
 
 
-	@FXML
-	private Text lineNoMessage;
+	//@FXML
+	//private Text lineNoMessage;
 
 	@FXML
 	private Button speakButton;
@@ -81,24 +83,29 @@ public class AudioCreationController {
 		numberedTextArea.setEditable(true);
 		numberedTextArea.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
-		noLines.setStyle("-fx-control-inner-background: rgb(049,055,060); "
-				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
+		//noLines.setStyle("-fx-control-inner-background: rgb(049,055,060); "
+			//	+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
 
 		voiceSelect.getItems().add("Default Voice");
 		voiceSelect.getItems().add("Akl_NZ(male) Voice");
 		voiceSelect.getItems().add("Akl_NZ(female) Voice");
 		voiceSelect.getSelectionModel().selectFirst();
-
+		numberedTextArea.setText(savedText);
+		
+		selectedAudio.getItems().clear();
+		for(int i=0; i<savedAudio.size();i++) {
+			selectedAudio.getItems().add(savedAudio.get(i));
+		}
+		
+		savedAudio.clear();
 		// disallow non-numeric characters
-		noLines.textProperty().addListener(new ChangeListener<String>() {
-
-			@Override
-			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-				if (!newValue.matches("\\d*")) {
-					noLines.setText(newValue.replaceAll("[^\\d]", ""));
-				}
-			}
-		});
+		/*
+		 * noLines.textProperty().addListener(new ChangeListener<String>() {
+		 * 
+		 * @Override public void changed(ObservableValue<? extends String> observable,
+		 * String oldValue, String newValue) { if (!newValue.matches("\\d*")) {
+		 * noLines.setText(newValue.replaceAll("[^\\d]", "")); } } });
+		 */
 
 
 	}
@@ -113,8 +120,8 @@ public class AudioCreationController {
 		_tempDir = tempDir;
 		_wikitTerm = wikitTerm;
 		numberedTextArea.setText(_numberedText);
-
-
+		selectedAudio.getItems().clear();
+		savedAudio.clear();
 	}
 
 
@@ -123,7 +130,7 @@ public class AudioCreationController {
 		CommandFactory command = new CommandFactory();
 		List<String> output = command.sendCommand("wc -l < " + _tempDir + "/description.txt", false);
 		_lineNo = output.get(0);
-		lineNoMessage.setText("Number of lines to include (1 to " + _lineNo + ")");
+		//lineNoMessage.setText("Number of lines to include (1 to " + _lineNo + ")");
 
 	}
 
@@ -183,35 +190,45 @@ public class AudioCreationController {
 		//GenerateAudioTask task = new GenerateAudioTask(lineNoSelect, _tempDir);
 		//Thread generateAudio = new Thread(task); 
 		//generateAudio.start();
-
-		String order = "";
-		for(int i=0; i<selectedAudio.getItems().size();i++) {
-			if (i==(selectedAudio.getItems().size() - 1)) {
-				order = order +_tempDir +"/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3";
-				break;
+		if (selectedAudio.getItems().size()==0) {
+			Alert popup = new Alert(AlertType.INFORMATION);
+			popup.setTitle("No audio selected");
+			popup.setHeaderText("Please add some audio to create an creation");
+			popup.show();
+		}else {
+			String order = "";
+			for(int i=0; i<selectedAudio.getItems().size();i++) {
+				if (i==(selectedAudio.getItems().size() - 1)) {
+					order = order +_tempDir +"/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3";
+					savedAudio.add(selectedAudio.getItems().get(i));
+					break;
+				}
+				order = order + _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3 ";
+				savedAudio.add(selectedAudio.getItems().get(i));
 			}
-			order = order + _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3 ";
+			order = order.replace(" ", "|");
+			String cmd = "ffmpeg -i \"concat:"+order+"\" -acodec copy "+ _tempDir +"/output.mp3";
+			savedText=numberedTextArea.getText();
+
+			new Thread(() -> {
+				submitCreationButton.setDisable(true);
+				try {
+					command.sendCommand("rm " +_tempDir + "/output.mp3" , false);
+					command.sendCommand(cmd , false);
+					command.sendCommand("echo \""+savedText+"\" > "+_tempDir+"/description.txt" , false);
+					audioGenResult = command.sendCommand("echo $(soxi -D "+_tempDir+"/output.mp3)" , false);
+					submitCreationButton.setDisable(false);
+					Platform.runLater(() -> {
+						VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
+						videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult);
+					});
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}).start();
 		}
-		order = order.replace(" ", "|");
-		String cmd = "ffmpeg -i \"concat:"+order+"\" -acodec copy "+ _tempDir +"/output.mp3";
-
-		new Thread(() -> {
-			submitCreationButton.setDisable(true);
-			try {
-				command.sendCommand(cmd , false);
-				command.sendCommand("rm audio*.mp3" , false);
-				audioGenResult = command.sendCommand("echo $(soxi -D "+_tempDir+"/output.mp3)" , false);
-				submitCreationButton.setDisable(false);
-				Platform.runLater(() -> {
-					VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
-					videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult);
-				});
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}).start();
 
 
 
@@ -242,7 +259,12 @@ public class AudioCreationController {
 	private void handleSpeakPress(ActionEvent event){ 
 		String lol = numberedTextArea.getSelectedText();
 		String[] words = lol.split(" ");
-		if (words.length > 40) {
+		if (numberedTextArea.getSelectedText().isEmpty()) {
+			Alert popup = new Alert(AlertType.INFORMATION);
+			popup.setTitle("Select a chuck to add");
+			popup.setHeaderText("No selected text detected. please select text to add");
+			popup.show();
+		}else if (words.length > 40) {
 			Alert popup = new Alert(AlertType.INFORMATION);
 			popup.setTitle("Too many words selected");
 			popup.setHeaderText("Please selected between 1-40 words");
@@ -275,7 +297,12 @@ public class AudioCreationController {
 	private void handleAddPress(ActionEvent event){ 
 		String lol = numberedTextArea.getSelectedText();
 		String[] words = lol.split(" ");
-		if (words.length > 40) {
+		if (numberedTextArea.getSelectedText().isEmpty()) {
+			Alert popup = new Alert(AlertType.INFORMATION);
+			popup.setTitle("Select a chuck to add");
+			popup.setHeaderText("No selected text detected. please select text to add");
+			popup.show();
+		} else if (words.length > 40) {
 			Alert popup = new Alert(AlertType.INFORMATION);
 			popup.setTitle("Too many words selected");
 			popup.setHeaderText("Please selected between 1-40 words");
@@ -299,7 +326,7 @@ public class AudioCreationController {
 					command.sendCommand("text2wave -o "+ _tempDir +"/"+ name +".wav selectedText.txt " + voice , false);
 					command.sendCommand("lame " + _tempDir +"/"+ name +".wav " + _tempDir +"/"+ name +".mp3" , false);
 					command.sendCommand("rm selectedText.txt" , false);
-					command.sendCommand("rm "+ _tempDir +"/*.wav" , false);
+					//command.sendCommand("rm "+ _tempDir +"/*.wav" , false);
 					addButton.setDisable(false);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -340,11 +367,14 @@ public class AudioCreationController {
 			selectedAudio.getItems().set(order, temp);
 		}
 	}
-	
+
 	@FXML
 	private void previewPress(ActionEvent event){ 
 		CommandFactory command = new CommandFactory();
 		new Thread(() -> {
+			previewButton.setDisable(true);
+			speakButton.setDisable(true);
+			addButton.setDisable(true);
 			for(int i=0; i<selectedAudio.getItems().size();i++) {
 				String cmd = "aplay "+ _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".wav";
 				try {
@@ -353,6 +383,9 @@ public class AudioCreationController {
 					e.printStackTrace();
 				}
 			}
+			previewButton.setDisable(false);
+			speakButton.setDisable(false);
+			addButton.setDisable(false);
 		}).start();;
 	}
 
