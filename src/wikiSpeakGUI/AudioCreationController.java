@@ -281,6 +281,7 @@ public class AudioCreationController {
 			CommandFactory command = new CommandFactory();
 			new Thread(() -> {
 				speakButton.setDisable(true);
+				cancelButton.setDisable(true);
 				previewButton.setDisable(true);
 				submitCreationButton.setDisable(true);
 				try {
@@ -291,6 +292,7 @@ public class AudioCreationController {
 					command.sendCommand("rm selectedText.txt" , false);
 					speakButton.setDisable(false);
 					previewButton.setDisable(false);
+					cancelButton.setDisable(false);
 					submitCreationButton.setDisable(false);
 
 				} catch (IOException e) {
