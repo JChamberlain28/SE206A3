@@ -13,6 +13,7 @@ public class GenerateVideoTask extends Task<Void>  {
 	private String _tempDir;
 	private String _wikitTerm;
 	private AppGUIController _controllerForUpdate;
+	List<String> vidControllerGenList = null;
 
 	public GenerateVideoTask(List<String> AudioGenResult, String creationName, String tempDir, String wikitTerm, AppGUIController controllerForUpdate) {
 		_AudioGenResult = AudioGenResult;
@@ -24,12 +25,27 @@ public class GenerateVideoTask extends Task<Void>  {
 
 	@Override
 	protected Void call() throws Exception {
+		
+		
+		VideoCreationController.getCurrentlyGenerating().add(_creationName);
+		
+		Platform.runLater(new Runnable() {
+
+			@Override
+			public void run() {
+				_controllerForUpdate.updateCreationList();
+				
+			}
+			
+		});
+		
 		CommandFactory generationScript = new CommandFactory();
 			
 			
 			// audio generation script returns audio duration
 			double audioTime = Double.parseDouble(_AudioGenResult.get(0));
 			audioTime = audioTime + 1; // make video 1 second longer than audio
+
 			
 			generationScript.sendCommand("./generateVid.sh \"" + _creationName + "\" " + _tempDir + " \"" + _wikitTerm + "\" " + audioTime, false);
 		return null;
@@ -38,6 +54,10 @@ public class GenerateVideoTask extends Task<Void>  {
 	
 	@Override
 	protected void done() {
+		
+		VideoCreationController.getCurrentlyGenerating().remove(VideoCreationController.getCurrentlyGenerating().indexOf(_creationName));
+
+		
 		Platform.runLater(new Runnable() {
 
 			@Override

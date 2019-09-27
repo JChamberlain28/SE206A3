@@ -50,16 +50,15 @@ public class FlickrAPI {
 	        params.setText(query);
 	        
 	        PhotoList<Photo> results = photos.search(params, resultsPerPage, page);
-
 	        
 	        for (Photo photo: results) {
 	        	try {
 	        		BufferedImage image = photos.getImage(photo,Size.LARGE);
-		        	String filename = query.trim().replace(' ', '-')+"-"+System.currentTimeMillis()+"-"+photo.getId()+".jpg";
+		        	String filename = photo.getId()+".jpg";
 		        	File outputfile = new File(tempDir,filename);
 		        	ImageIO.write(image, "jpg", outputfile);
 	        	} catch (FlickrException fe) {
-	        		System.err.println("Ignoring image " +photo.getId() +": "+ fe.getMessage());
+	        		fe.printStackTrace();
 				}
 	        }
 		} catch (Exception e) {

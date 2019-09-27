@@ -27,23 +27,28 @@ public class GetImagesTask extends Task<Void>{
 	private String _tempDir;
 	private TableColumn<CellImage, ImageView> _colForUpdate;
 	private List<String> _imageNameList = null;
+	private ImageView _loadingIcon;
+	private Button _imageNoButton;
 
 	
 	
-	public GetImagesTask(String wikitTerm, Button submitCreationButton, String noOfImages, TableView<CellImage> imageView, TableColumn<CellImage, ImageView> colForUpdate, String tempDir) {
+	public GetImagesTask(String wikitTerm, Button submitCreationButton, String noOfImages, TableView<CellImage> imageView,
+			TableColumn<CellImage, ImageView> colForUpdate, String tempDir, ImageView loadingIcon, Button imageNoButton) {
 		_wikitTerm = wikitTerm;
 		_submitCreationButton = submitCreationButton;
 		_noOfImages = noOfImages;
 		_imageView = imageView;
 		_tempDir = tempDir;
 		_colForUpdate = colForUpdate;
+		_loadingIcon = loadingIcon;
+		_imageNoButton = imageNoButton;
 		
 	}
 
 	@Override
 	protected Void call() throws Exception {
 		CommandFactory command = new CommandFactory();
-		command.sendCommand("rm ./" + _tempDir + "/*.jpg", false);
+		command.sendCommand("rm -f ./" + _tempDir + "/*.jpg", false);
 		
 		// will need loading animation for this ####
 		FlickrAPI.downloadImages(_wikitTerm, _tempDir, Integer.parseInt(_noOfImages));
@@ -84,7 +89,9 @@ public class GetImagesTask extends Task<Void>{
 				
 				_colForUpdate.setCellValueFactory(new PropertyValueFactory<CellImage, ImageView>("image"));
 				_imageView.setItems(imageItems);
-
+				_submitCreationButton.setDisable(false);
+				_loadingIcon.setVisible(false);
+				_imageNoButton.setDisable(false);
 				
 			}
 			

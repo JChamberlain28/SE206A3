@@ -15,27 +15,30 @@ public class UpdateCreationListTask extends Task<Void> {
 	private Button _delButton;
 	private Button _playButton;
 	private Text _creationNoText;
+	private List<String> _currentlyGenerating;
 
 
 
 
 
 
-	public UpdateCreationListTask(ListView<String> listToUpdate, Button delButton, Button playButton, Text creationNoText) {
+	public UpdateCreationListTask(ListView<String> listToUpdate, Button delButton, Button playButton, Text creationNoText, List<String> currentlyGenerating) {
 		
 		_listToUpdate = listToUpdate;
-
 		_delButton = delButton;
 		_playButton = playButton;
 		_creationNoText = creationNoText;
+		_currentlyGenerating = currentlyGenerating;
 
 	}
 
 	@Override
 	protected Void call() throws Exception {
-
-		// stores current creations in an array
 		CommandFactory listFileCommand = new CommandFactory();
+		
+		
+		
+		// stores current creations in an array
 		List<String> listFileResult = listFileCommand.sendCommand("./listCreations.sh", true);
 
 		lines = listFileResult.get(0).split("\\r?\\n");
@@ -55,8 +58,23 @@ public class UpdateCreationListTask extends Task<Void> {
 				
 				// adds each creation to the ListView
 				_listToUpdate.getItems().clear();		
+				for (String i : _currentlyGenerating) {
+					_listToUpdate.getItems().add(i + " (Unavailable)");
+				}
+				
 				for (String i : lines) {
-					_listToUpdate.getItems().add(i);
+					// prevents no creations text being displayed when there are creations
+					// being generating
+					if (!(_currentlyGenerating.isEmpty())) {
+						if (!(i.equals("(No creations currently exist)"))) {
+							_listToUpdate.getItems().add(i);
+						}
+					}
+					else {
+						_listToUpdate.getItems().add(i);
+					}
+
+
 				}
 
 				

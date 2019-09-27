@@ -39,3 +39,9 @@
     -fx-shape: null;
 }
 
+
+
+ .table-view .placeholder .label {
+     -fx-text-fill: white;
+ }
+

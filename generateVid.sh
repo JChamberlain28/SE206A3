@@ -15,7 +15,7 @@ framerate=$(echo "1/${frametime}" | bc -l)
 
 
 
-cat ${2}/*.jpg |  ffmpeg  -loglevel panic -framerate $framerate -f  image2pipe -i - -vf "scale=480:360,format=yuv420p,drawtext=fontfile=myfont.ttf:fontsize=30: fontcolor=white:shadowx=2:x=(w-text_w)/2:y=(h-text_h)/2:text='$3'"  ${2}/video.mp4
+cat ${2}/*.jpg |  ffmpeg  -loglevel panic -framerate $framerate -f  image2pipe -i - -vf "scale=480:360,format=yuv420p,drawtext=fontfile=myfont.ttf:fontsize=30: fontcolor=white:shadowx=2:x=(w-text_w)/2:y=(h-text_h)/2:text='$3'" -r 25  ${2}/video.mp4
 
 
 ffmpeg -loglevel panic -i $2/video.mp4 -i $2/audio.mp3 -strict experimental "creations/$1.mp4" 
