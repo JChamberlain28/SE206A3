@@ -58,22 +58,9 @@ public class AppGUI extends Application{
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(getClass().getResource("AppGUI.fxml"));
 		Parent layout = loader.load();
-
-
-
 		Scene scene = new Scene(layout);
-
 		primaryStage.setScene(scene);
-
-
-
-
-
-
 		primaryStage.show();
-
-
-
 
 		// remove .description.txt upon closing application to prevent left over files
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
