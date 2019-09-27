@@ -140,7 +140,7 @@ public class AppGUIController {
 		// retrieve description with line numbers.
 		// send command 2nd parameter determines if each array item (sentence) should be separated by a new line
 		try {
-			numberedDescriptionOutput = command.sendCommand("cat -n " +  String.format("%s/description.txt ", tempFolder), true);
+			numberedDescriptionOutput = command.sendCommand("cat " +  String.format("%s/description.txt ", tempFolder), true);
 			
 		}
 		catch (Exception e){

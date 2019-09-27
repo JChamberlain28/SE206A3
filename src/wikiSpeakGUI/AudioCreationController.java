@@ -181,14 +181,14 @@ public class AudioCreationController {
 			String order = "";
 			for(int i=0; i<selectedAudio.getItems().size();i++) {
 				if (i==(selectedAudio.getItems().size() - 1)) {
-					order = order + "audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3";
+					order = order +_tempDir +"/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3";
 					break;
 				}
-				order = order + "audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3 ";
+				order = order + _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".mp3 ";
 			}
 			order = order.replace(" ", "|");
 			System.out.println(order);
-			String cmd = "ffmpeg -i \"concat:"+order+"\" -acodec copy final.mp3";
+			String cmd = "ffmpeg -i \"concat:"+order+"\" -acodec copy "+ _tempDir +"/final.mp3";
 			
 			new Thread(() -> {
 				submitCreationButton.setDisable(true);
@@ -239,9 +239,9 @@ public class AudioCreationController {
 			speakButton.setDisable(true);
 			try {
 				command.sendCommand(cmd , false);
-				command.sendCommand("text2wave selectedText.txt -o speakAudio.wav" , false);
-				command.sendCommand("aplay speakAudio.wav" , false);
-				command.sendCommand("rm speakAudio.wav" , false);
+				command.sendCommand("text2wave selectedText.txt -o "+ _tempDir +"/speakAudio.wav" , false);
+				command.sendCommand("aplay "+ _tempDir +"/speakAudio.wav" , false);
+				command.sendCommand("rm " + _tempDir +"/speakAudio.wav" , false);
 				command.sendCommand("rm selectedText.txt" , false);
 				speakButton.setDisable(false);
 
@@ -267,10 +267,10 @@ public class AudioCreationController {
 			addButton.setDisable(true);
 			try {
 				command.sendCommand(cmd , false);
-				command.sendCommand("text2wave selectedText.txt -o "+ name +".wav" , false);
-				command.sendCommand("lame " + name +".wav " + name +".mp3" , false);
+				command.sendCommand("text2wave selectedText.txt -o "+ _tempDir +"/"+ name +".mp3" , false);
+				command.sendCommand("lame " + _tempDir +"/"+ name +".wav " + _tempDir +"/"+ name +".mp3" , false);
 				command.sendCommand("rm selectedText.txt" , false);
-				command.sendCommand("rm *.wav" , false);
+				command.sendCommand("rm "+ _tempDir +"/*.wav" , false);
 				addButton.setDisable(false);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -288,7 +288,7 @@ public class AudioCreationController {
 	
 	@FXML
 	private void upPress(ActionEvent event){ 
-		int order = selectedAudio.getItems().indexOf(selectedAudio.getSelectionModel().getSelectedItem());
+		int order = selectedAudio.getSelectionModel().getSelectedIndex();
 		if (order <= 0) {
 			
 		}else {
@@ -301,7 +301,7 @@ public class AudioCreationController {
 	
 	@FXML
 	private void downPress(ActionEvent event){ 
-		int order = selectedAudio.getItems().indexOf(selectedAudio.getSelectionModel().getSelectedItem());
+		int order = selectedAudio.getSelectionModel().getSelectedIndex();
 		if (order + 1 >= selectedAudio.getItems().size()) {
 			
 		}else {
