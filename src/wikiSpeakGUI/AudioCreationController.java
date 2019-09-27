@@ -207,16 +207,16 @@ public class AudioCreationController {
 				savedAudio.add(selectedAudio.getItems().get(i));
 			}
 			order = order.replace(" ", "|");
-			String cmd = "ffmpeg -i \"concat:"+order+"\" -acodec copy "+ _tempDir +"/output.mp3";
+			String cmd = "ffmpeg -i \"concat:"+order+"\" -acodec copy "+ _tempDir +"/audio.mp3";
 			savedText=numberedTextArea.getText();
 
 			new Thread(() -> {
 				submitCreationButton.setDisable(true);
 				try {
-					command.sendCommand("rm " +_tempDir + "/output.mp3" , false);
+					command.sendCommand("rm " +_tempDir + "/audio.mp3" , false);
 					command.sendCommand(cmd , false);
 					command.sendCommand("echo \""+savedText+"\" > "+_tempDir+"/description.txt" , false);
-					audioGenResult = command.sendCommand("echo $(soxi -D "+_tempDir+"/output.mp3)" , false);
+					audioGenResult = command.sendCommand("echo $(soxi -D "+_tempDir+"/audio.mp3)" , false);
 					submitCreationButton.setDisable(false);
 					Platform.runLater(() -> {
 						VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
