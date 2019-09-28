@@ -275,7 +275,7 @@ public class AudioCreationController {
 						if(fileCreateCheck.get(0).equals(_tempDir + "/" + name+".wav: empty")) {
 							Alert popup = new Alert(AlertType.INFORMATION);
 							popup.setTitle("Error");
-							popup.setHeaderText("lol");
+							popup.setHeaderText("Voice can not say a word in the selected sentence");
 							popup.show();
 						}else {
 							selectedAudio.getItems().add(sel);
