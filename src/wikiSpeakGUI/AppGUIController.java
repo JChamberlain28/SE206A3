@@ -156,7 +156,6 @@ public class AppGUIController {
 		// pass numbered description to be displayed in create view
 		String searchTerm = wikitInput.getText();
 		createController.passInfo(numberedDescriptionOutput.get(0), tempFolder, searchTerm);
-		createController.updateCount();
 
 
 

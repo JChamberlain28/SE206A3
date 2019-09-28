@@ -19,7 +19,7 @@ public class AudioCreationController {
 
 	private String _numberedText;
 	private static String _tempDir;
-	private String _wikitTerm;
+	private static String _wikitTerm;
 	private static List<String> audioGenResult;
 	private static ArrayList<String> audioSentences=new ArrayList<String>();
 	private static ArrayList<String> savedAudio=new ArrayList<String>();
@@ -66,24 +66,20 @@ public class AudioCreationController {
 
 	@FXML
 	private void initialize() {
-		if(selectedAudio.getItems().isEmpty()) {
-			previewButton.setDisable(true);
-			submitCreationButton.setDisable(true);
-			delButton.setDisable(true);
-			upButton.setDisable(true);
-			downButton.setDisable(true);	
-		}
+		//formats the TextArea
 		numberedTextArea.setWrapText(true);
 		numberedTextArea.setEditable(true);
 		numberedTextArea.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
-
+		
+		//adds voice options in a drop down box
 		voiceSelect.getItems().add("Default Voice");
 		voiceSelect.getItems().add("Akl_NZ(male) Voice");
 		voiceSelect.getItems().add("Akl_NZ(female) Voice");
 		voiceSelect.getSelectionModel().selectFirst();
 		numberedTextArea.setText(savedText);
 
+		//loads saved audio chunks
 		selectedAudio.getItems().clear();
 		for(int i=0; i<savedAudio.size();i++) {
 			selectedAudio.getItems().add(savedAudio.get(i));
@@ -91,7 +87,14 @@ public class AudioCreationController {
 
 		savedAudio.clear();
 
-
+		//disables buttons 
+		if(selectedAudio.getItems().size()==0) {
+			previewButton.setDisable(true);
+			submitCreationButton.setDisable(true);
+			delButton.setDisable(true);
+			upButton.setDisable(true);
+			downButton.setDisable(true);	
+		}
 	}
 
 
@@ -108,71 +111,21 @@ public class AudioCreationController {
 		savedAudio.clear();
 	}
 
-
-	// updates text that describes line number field with correct line limit
-	public void updateCount() throws IOException, InterruptedException {
-		CommandFactory command = new CommandFactory();
-		List<String> output = command.sendCommand("wc -l < " + _tempDir + "/description.txt", false);
-		//lineNoMessage.setText("Number of lines to include (1 to " + _lineNo + ")");
-
-	}
-
-
-
 	@FXML
 	// Changes scene to main scene
-	private void handleBackToMainView(ActionEvent event) throws IOException { // handle io exception?
-
-		// removes temp directory to prevent left over files
+	private void handleBackToMainView(ActionEvent event){ // handle io exception?
+		//removes the temp directory
 		Thread delDir = new Thread(new RemoveDirTask(_tempDir));
 		delDir.start();
-
-
 		ss.newScene("AppGUI.fxml", event);
 	}
 
 
 
 	@FXML
-	private void handleSubmitCreation(ActionEvent event) throws IOException, InterruptedException {
-
-
-		// abort flag cancels creation generation when set to true
-		//boolean abort = false;
-
-		//String lineNoSelect = noLines.getText();
-
+	private void handleSubmitCreation(ActionEvent event){
 		CommandFactory command = new CommandFactory();
-
-		// error checking
-
-		// checks user didn't leave line number selection field empty (prompts user if they have)
-		/*
-		 * if (lineNoSelect.isEmpty()) { Alert popup = new Alert(AlertType.INFORMATION);
-		 * popup.setTitle("Empty Line Selection");
-		 * popup.setHeaderText("Please enter a line selection (1 to " + _lineNo + ")");
-		 * popup.show(); abort = true; } else { // checks line number selection is not
-		 * outside the valid line range (prompts user if so) int lineNoSelectInt =
-		 * Integer.parseInt(lineNoSelect); int lineNoLimitInt =
-		 * Integer.parseInt(_lineNo);
-		 * 
-		 * if ((lineNoSelectInt > lineNoLimitInt) || (lineNoSelectInt < 1)) { Alert
-		 * popup = new Alert(AlertType.INFORMATION);
-		 * popup.setTitle("Invalid Line Selection");
-		 * popup.setHeaderText("Please enter a line selection (1 to " + _lineNo + ")");
-		 * popup.show(); abort = true; } }
-		 */
-
-
-
-
-
-		// start audio generation and switch to video customisation view
-		//if (!abort) {
-
-		//GenerateAudioTask task = new GenerateAudioTask(lineNoSelect, _tempDir);
-		//Thread generateAudio = new Thread(task); 
-		//generateAudio.start();
+		//error handler for creation without any audio selected
 		if (selectedAudio.getItems().size()==0) {
 			Alert popup = new Alert(AlertType.INFORMATION);
 			popup.setTitle("No audio selected");
@@ -180,6 +133,7 @@ public class AudioCreationController {
 			popup.show();
 		}else {
 			String order = "";
+			//gets the order the audio files need to be combined in
 			for(int i=0; i<selectedAudio.getItems().size();i++) {
 				if (i==(selectedAudio.getItems().size() - 1)) {
 					order = order +_tempDir +"/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".wav";
@@ -192,7 +146,8 @@ public class AudioCreationController {
 			
 			String cmd = "sox "+order+" "+ _tempDir +"/audio.wav";
 			savedText=numberedTextArea.getText();
-
+			
+			//combines the audio files in separate thread
 			Thread create = new Thread(() -> {
 				submitCreationButton.setDisable(true);
 				try {
@@ -202,6 +157,7 @@ public class AudioCreationController {
 					audioGenResult = command.sendCommand("echo $(soxi -D "+_tempDir+"/audio.wav)" , false);
 					submitCreationButton.setDisable(false);
 					Platform.runLater(() -> {
+						//changes scene when audio finished generating
 						VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
 						videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult);
 					});
@@ -216,49 +172,33 @@ public class AudioCreationController {
 		}
 
 
-
-		// proceed with video generation upon audio generation completion ####
-		// (temporary code until video generation moved to another controller) ####
-		// gsin387 <- please make gui wait till audio generation complete before switching ####
-		// can change this near end if need be ####
-		/*
-		 * task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-		 * 
-		 * @Override public void handle(WorkerStateEvent t) { audioGenResult =
-		 * task.getValue();
-		 * 
-		 * videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult); } });
-		 */
-
-
 	}
-
-
-
-
-
-	//}
 
 
 	@FXML
 	private void handleSpeakPress(ActionEvent event){ 
-		String lol = numberedTextArea.getSelectedText();
-		String[] words = lol.split(" ");
+		String sel = numberedTextArea.getSelectedText();
+		String[] words = sel.split(" ");
+		//error handling for when no text selected for speak or when too much text selected
 		if (numberedTextArea.getSelectedText().isEmpty()) {
 			Alert popup = new Alert(AlertType.INFORMATION);
 			popup.setTitle("Select a chuck to add");
 			popup.setHeaderText("No selected text detected. please select text to add");
 			popup.show();
-		}else if (words.length > 40) {
+		}else if (words.length + 1> 40) {
 			Alert popup = new Alert(AlertType.INFORMATION);
 			popup.setTitle("Too many words selected");
 			popup.setHeaderText("Please selected between 1-40 words");
 			popup.show();
 		}else {
-			lol = lol.replace("\"", " ");
-			String cmd = "echo \"" + lol + "\" > selectedText.txt";
+			//removes symbols that might cause errors
+			sel = sel.replace("\"", " ");
+			sel = sel.replace("\n", " ");
+			String cmd = "echo \"" + sel + "\" > selectedText.txt";
+			//gets the voice for the audio
 			String voice = getVoice();
 			CommandFactory command = new CommandFactory();
+			//creates and plays an audio file in separate thread
 			Thread speak= new Thread(() -> {
 				speakButton.setDisable(true);
 				cancelButton.setDisable(true);
@@ -290,6 +230,7 @@ public class AudioCreationController {
 	private void handleAddPress(ActionEvent event){ 
 		String selected = numberedTextArea.getSelectedText();
 		String[] words = selected.split(" ");
+		//error handling for when no text selected for add or when too much text selected
 		if (numberedTextArea.getSelectedText().isEmpty()) {
 			Alert popup = new Alert(AlertType.INFORMATION);
 			popup.setTitle("Select a chuck to add");
@@ -306,28 +247,31 @@ public class AudioCreationController {
 			delButton.setDisable(false);
 			upButton.setDisable(false);
 			downButton.setDisable(false);
+			//if selected text is same as a previous one adds white space to it to help distinguish 
 			while (selectedAudio.getItems().contains(selected)) {
 				selected = selected + " ";
 			}
+			//removes symbols that might cause problems
+			selected = selected.replace("\"", " ");
+			selected = selected.replace("\n", " ");
+			//saves text to an array to keep track of audio files
 			audioSentences.add(selected);
 			String name = "audio" + count;
 			count++;
-			selected = selected.replace("\"", " ");
 			String cmd = "echo \"" + selected + "\" > selectedText.txt";
 			String sel = selected;
 			String voice = getVoice();
 			CommandFactory command = new CommandFactory();
+			//creates audio file of selected text in separate thread
 			Thread add = new Thread(() -> {
 				addButton.setDisable(true);
 				try {
 					command.sendCommand(cmd , false);
-					//List<String> fileCreateCheck = command.sendCommand("text2wave -o "+ _tempDir +"/"+ name +".wav selectedText.txt " 
-					//+ voice + " || " + "file " + _tempDir +"/"+ name, false);
 					List<String> fileCreateCheck = command.sendCommand("text2wave -o " + _tempDir + "/" + name + ".wav selectedText.txt " 
 							+ voice + " && " + "file " + _tempDir +"/"+ name + ".wav" ,false);
 
-					System.out.println(fileCreateCheck);
 					Platform.runLater(() ->{
+						//error handler in case the selected text is not able to generate a audio file
 						if(fileCreateCheck.get(0).equals(_tempDir + "/" + name+".wav: empty")) {
 							Alert popup = new Alert(AlertType.INFORMATION);
 							popup.setTitle("Error");
@@ -337,10 +281,8 @@ public class AudioCreationController {
 							selectedAudio.getItems().add(sel);
 						}
 					});
-					
-					//command.sendCommand("lame " + _tempDir +"/"+ name +".wav " + _tempDir +"/"+ name +".mp3" , false);
+				
 					command.sendCommand("rm selectedText.txt" , false);
-					//command.sendCommand("rm "+ _tempDir +"/*.wav" , false);
 					addButton.setDisable(false);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -355,8 +297,9 @@ public class AudioCreationController {
 
 	@FXML
 	private void handleDelPress(ActionEvent event){ 
-		String lol=selectedAudio.getSelectionModel().getSelectedItem();
-		selectedAudio.getItems().remove(lol);
+		//removes selected audio from the audio list
+		String sel=selectedAudio.getSelectionModel().getSelectedItem();
+		selectedAudio.getItems().remove(sel);
 		if(selectedAudio.getItems().isEmpty()) {
 			previewButton.setDisable(true);
 			submitCreationButton.setDisable(true);
@@ -369,6 +312,7 @@ public class AudioCreationController {
 	@FXML
 	private void upPress(ActionEvent event){ 
 		int order = selectedAudio.getSelectionModel().getSelectedIndex();
+		//Switches the selected audio with the one above if it exists
 		if (order <= 0) {
 
 		}else {
@@ -382,6 +326,7 @@ public class AudioCreationController {
 	@FXML
 	private void downPress(ActionEvent event){ 
 		int order = selectedAudio.getSelectionModel().getSelectedIndex();
+		//Switches the selected audio with the one below if it exists
 		if (order + 1 >= selectedAudio.getItems().size()) {
 
 		}else {
@@ -394,7 +339,9 @@ public class AudioCreationController {
 	@FXML
 	private void previewPress(ActionEvent event){ 
 		CommandFactory command = new CommandFactory();
+		//thread that plays all audio files in the audio list to preview creation
 		Thread preview = new Thread(() -> {
+			//disable buttons
 			previewButton.setDisable(true);
 			speakButton.setDisable(true);
 			addButton.setDisable(true);
@@ -403,6 +350,7 @@ public class AudioCreationController {
 			upButton.setDisable(true);
 			downButton.setDisable(true);
 			cancelButton.setDisable(true);
+			//loops through all audio files and plays them
 			for(int i=0; i<selectedAudio.getItems().size();i++) {
 				String cmd = "aplay "+ _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".wav";
 				try {
@@ -411,6 +359,7 @@ public class AudioCreationController {
 					e.printStackTrace();
 				}
 			}
+			//enable buttons 
 			previewButton.setDisable(false);
 			speakButton.setDisable(false);
 			addButton.setDisable(false);
@@ -425,6 +374,7 @@ public class AudioCreationController {
 	}
 
 	private String getVoice() {
+		//gets the voice selected and returns the code for that voice
 		String selected = voiceSelect.getSelectionModel().getSelectedItem();
 		if (selected.equals("Default Voice")) {
 			return "-eval \"(voice_kal_diphone)\"";
