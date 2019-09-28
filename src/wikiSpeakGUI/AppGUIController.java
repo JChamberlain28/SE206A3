@@ -20,7 +20,7 @@ import javafx.scene.text.Text;
 
 public class AppGUIController {
 
-	
+
 	SceneSwitcher ss = new SceneSwitcher();
 
 	// create section widgets
@@ -39,22 +39,22 @@ public class AppGUIController {
 
 	@FXML
 	private ListView<String> creationList;
-	
-	
+
+
 	@FXML
 	private Button playButton;
-	
-	
+
+
 	@FXML
 	private Button deleteButton;
 
 
-	
-	
+
+
 	@FXML
 	private Text creationNoText;
-	
-	
+
+
 
 
 	@FXML
@@ -83,15 +83,15 @@ public class AppGUIController {
 		});
 
 	}
-	
-	
 
-	
-	
+
+
+
+
 	// event handling
-	
-	
-	
+
+
+
 	// sets ListViews to default selection when triggered (first item)
 	@FXML
 	private void creationListDefaultSelect(Event event) {
@@ -100,9 +100,9 @@ public class AppGUIController {
 	}
 
 
-	
 
-	
+
+
 	// Changes scene to create scene
 	@FXML
 	private void handleContinueButton(ActionEvent event) throws IOException, InterruptedException { // handle io exception ####
@@ -110,9 +110,9 @@ public class AppGUIController {
 		// get command object for sending bash commands
 		CommandFactory command = new CommandFactory();
 
-		
-		
-		
+
+
+
 		// make temp directory
 		List<String> mktempResult = null;
 		List<String> numberedDescriptionOutput = null;
@@ -128,7 +128,7 @@ public class AppGUIController {
 
 		String tempFolder = mktempResult.get(0);
 
-		
+
 		// process description so each sentence is on a new line.
 		try {
 			command.sendCommand("cat .description.txt " + " | sed 's/\\([.!?]\\) \\([[:upper:]]\\)/\\1\\n\\2/g' > " + String.format("%s/description.txt ", tempFolder), false);
@@ -136,40 +136,40 @@ public class AppGUIController {
 		catch (Exception e){
 			e.printStackTrace();
 		}
-		
+
 		// retrieve description with line numbers.
 		// send command 2nd parameter determines if each array item (sentence) should be separated by a new line
 		try {
 			numberedDescriptionOutput = command.sendCommand("cat " +  String.format("%s/description.txt ", tempFolder), true);
-			
+
 		}
 		catch (Exception e){
 			e.printStackTrace();
 		}
-		
-		
-		
+
+
+
 		// switch scene to create view (casting to create controller as type of object known)
 		AudioCreationController createController = (AudioCreationController)ss.newScene("AudioCreationGUI.fxml", event);
-		
+
 
 		// pass numbered description to be displayed in create view
 		String searchTerm = wikitInput.getText();
 		createController.passInfo(numberedDescriptionOutput.get(0), tempFolder, searchTerm);
 		createController.updateCount();
-		
-		
+
+
 
 
 	}
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
 	@FXML
 	private void handleWikiSearch(ActionEvent event) { 
 
@@ -189,79 +189,95 @@ public class AppGUIController {
 		}
 
 	}
-	
-	
+
+
 	@FXML
 	private void handlePlayButton(Event event) {
-		
+
 		// get selected creation name to play
 		String selection = creationList.getSelectionModel().getSelectedItem();
-		
-		// selection field is static in PlayController
-		PlayController pc = new PlayController();
-		pc.passInfo(selection);
-		
-		
-		// switch to play scene
-		ss.newScene("PlayGUI.fxml",event);
+
+		if (selection.contains(" (Unavailable)")){
+			Alert popup = new Alert(AlertType.INFORMATION);
+			popup.setTitle("Creation Unavailable");
+			popup.setHeaderText("Creation currently genarating");
+			popup.show();
+		} 
+		else {
+			// selection field is static in PlayController
+			PlayController pc = new PlayController();
+			pc.passInfo(selection);
+
+
+			// switch to play scene
+			ss.newScene("PlayGUI.fxml",event);
+		}
+
 
 	}
-	
-	
-	
 
-	
+
+
+
+
 	@FXML
 	private void handleDeleteButton(Event event) throws IOException, InterruptedException{ 
-		
-		
-		deleteButton.setDisable(true);
-		playButton.setDisable(true);
-		
+
+
 		// get selected creation name to delete
 		String selection = creationList.getSelectionModel().getSelectedItem();
-		
-		
-		// deletion confirmation dialog
-		Alert popup = new Alert(AlertType.CONFIRMATION);
-		popup.setTitle("Delete Confirmation");
-		popup.setHeaderText("Are you sure you want to delete " + selection);
-		
-		ButtonType buttonTypeYes = new ButtonType("Yes");
-		ButtonType buttonTypeNo = new ButtonType("No", ButtonData.CANCEL_CLOSE);
 
-		popup.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
-				
-		Optional<ButtonType> result = popup.showAndWait();
-		if (result.get() == buttonTypeYes){
-			CommandFactory deleteCommand = new CommandFactory();
-			deleteCommand.sendCommand("rm \"creations/" + selection + ".mp4\"", false);
-			updateCreationList();
-		} else {
-			deleteButton.setDisable(false);
-			playButton.setDisable(false);
+		if (selection.contains(" (Unavailable)")){
+			Alert popup = new Alert(AlertType.INFORMATION);
+			popup.setTitle("Creation Unavailable");
+			popup.setHeaderText("Creation currently genarating");
+			popup.show();
+		} 
+		else {
+			deleteButton.setDisable(true);
+			playButton.setDisable(true);
+
+
+			// deletion confirmation dialog
+			Alert popup = new Alert(AlertType.CONFIRMATION);
+			popup.setTitle("Delete Confirmation");
+			popup.setHeaderText("Are you sure you want to delete " + selection);
+
+			ButtonType buttonTypeYes = new ButtonType("Yes");
+			ButtonType buttonTypeNo = new ButtonType("No", ButtonData.CANCEL_CLOSE);
+
+			popup.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
+
+			Optional<ButtonType> result = popup.showAndWait();
+			if (result.get() == buttonTypeYes){
+				CommandFactory deleteCommand = new CommandFactory();
+				deleteCommand.sendCommand("rm \"creations/" + selection + ".mp4\"", false);
+				updateCreationList();
+			} else {
+				deleteButton.setDisable(false);
+				playButton.setDisable(false);
+			}
+
 		}
-		
-
 
 	}
-	
-	
-	
-	
 
-	
-	
-	
 
-	
+
+
+
+
+
+
+
+
 	// helper function to update all lists
 	public void updateCreationList() {
 		Thread updateCreationList = new Thread(new UpdateCreationListTask(creationList, deleteButton, playButton, creationNoText, VideoCreationController.getCurrentlyGenerating()));
 		updateCreationList.start();
 	}
 
-	
+
 
 
 

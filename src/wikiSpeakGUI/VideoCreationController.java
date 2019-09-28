@@ -111,6 +111,7 @@ public class VideoCreationController {
 		String noOfImagesSelect = noOfImages.getSelectionModel().getSelectedItem();
 		Thread thread = new Thread(new GetImagesTask(_wikitTerm, submitCreationButton, noOfImagesSelect, imageView,
 				imageCol, _tempDir, loadingIcon, imageNoButton));
+		thread.setDaemon(true);
 		thread.start();
 	}
 
@@ -194,6 +195,7 @@ public class VideoCreationController {
 			AppGUIController appGUIController = (AppGUIController)ss.newScene("AppGUI.fxml", event);
 
 			Thread generateCreation= new Thread(new GenerateVideoTask(_audioGenResult, name, _tempDir, _wikitTerm, appGUIController));
+			generateCreation.setDaemon(true);
 			generateCreation.start();
 
 

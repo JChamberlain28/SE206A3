@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.security.CodeSource;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
@@ -72,6 +73,7 @@ public class AppGUI extends Application{
 
 					e1.printStackTrace();
 				}
+				Platform.exit();
 			}
 		});
 
