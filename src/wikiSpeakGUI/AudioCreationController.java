@@ -189,8 +189,8 @@ public class AudioCreationController {
 				order = order + _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".wav ";
 				savedAudio.add(selectedAudio.getItems().get(i));
 			}
-			order = order.replace(" ", "|");
-			String cmd = "ffmpeg -i \"concat:"+order+"\" -acodec copy "+ _tempDir +"/audio.wav";
+			
+			String cmd = "sox "+order+" "+ _tempDir +"/audio.wav";
 			savedText=numberedTextArea.getText();
 
 			Thread create = new Thread(() -> {
