@@ -59,10 +59,10 @@ public class WikitSearchTask extends Task<Void> {
 
 				} else { _wikitButton.setDisable(false); 
 				_resultField.setText(output.get(0));
-				_wikitLoading.setVisible(false);
 				_wikitContinue.setDisable(false);
 
 				}
+				_wikitLoading.setVisible(false);
 
 
 			}
