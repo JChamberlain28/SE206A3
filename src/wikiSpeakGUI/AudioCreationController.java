@@ -206,7 +206,7 @@ public class AudioCreationController {
 				submitCreationButton.setDisable(true);
 				try {
 					command.sendCommand(cmd , false);
-					//command.sendCommand("text2wave -o "+ _tempDir +"/speakAudio.wav selectedText.txt " + voice , false);
+					//error handling in case selected text is not able to generate audio
 					List<String> fileCreateCheck = command.sendCommand("text2wave -o "+ _tempDir +"/speakAudio.wav selectedText.txt " + voice 
 							+ " && " + "file " + _tempDir +"/speakAudio.wav", false);
 					System.out.println(fileCreateCheck);
