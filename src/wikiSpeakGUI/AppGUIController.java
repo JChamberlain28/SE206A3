@@ -23,6 +23,7 @@ public class AppGUIController {
 
 
 	SceneSwitcher ss = new SceneSwitcher();
+	String searchTerm = null;
 
 	// create section widgets
 	@FXML
@@ -145,7 +146,6 @@ public class AppGUIController {
 
 
 		// pass numbered description to be displayed in create view
-		String searchTerm = wikitInput.getText();
 		createController.passInfo(numberedDescriptionOutput.get(0), tempFolder, searchTerm);
 
 
@@ -164,7 +164,7 @@ public class AppGUIController {
 	private void handleWikiSearch(ActionEvent event) { 
 
 		wikitLoading.setVisible(true);
-		String searchTerm = wikitInput.getText();
+		searchTerm = wikitInput.getText();
 
 		if( searchTerm.trim().length() == 0) {
 			Alert popup = new Alert(AlertType.INFORMATION);
