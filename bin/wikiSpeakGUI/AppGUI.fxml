@@ -12,7 +12,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="513.0" prefWidth="810.0" style="-fx-background-color: rgb(027, 031, 034);" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wikiSpeakGUI.AppGUIController">
+<AnchorPane prefHeight="513.0" prefWidth="810.0" style="-fx-background-color: rgb(027, 031, 034);" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wikiSpeakGUI.AppGUIController">
    <children>
       <TabPane prefHeight="513.0" prefWidth="810.0" stylesheets="@styles.css" tabClosingPolicy="UNAVAILABLE">
         <tabs>
@@ -52,7 +52,7 @@
                         <TextArea fx:id="wikitResult" layoutX="28.0" layoutY="135.0" prefHeight="273.0" prefWidth="754.0" style="-fx-background-color: rgb(049,055,060); -fx-text-fill: rgb(255,255,255);" AnchorPane.leftAnchor="28.0" AnchorPane.rightAnchor="28.0" />
                         <ImageView fx:id="wikitLoading" fitHeight="26.0" fitWidth="28.0" layoutX="756.0" layoutY="430.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../../loading.gif" />
+                              <Image url="@loading.gif" />
                            </image>
                         </ImageView>
                      </children>
