@@ -131,6 +131,7 @@ public class AudioCreationController {
 	// Changes scene to main scene
 	private void handleBackToMainView(ActionEvent event) {
 		//removes the temp directory
+		audioSentences.clear();
 		Thread delDir = new Thread(new RemoveDirTask(_tempDir));
 		delDir.start();
 		ss.newScene("AppGUI.fxml", event);
