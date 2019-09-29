@@ -7,6 +7,7 @@ import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.Alert.AlertType;
 
 public class WikitSearchTask extends Task<Void> {
@@ -18,17 +19,19 @@ public class WikitSearchTask extends Task<Void> {
 	
 
 	List<String> output;
+	private ImageView _wikitLoading;
 
 
-	public WikitSearchTask(Button wikitButton, Button wikitContinue, String search, TextArea result) {
+	public WikitSearchTask(Button wikitButton, Button wikitContinue, String search, TextArea result, ImageView wikitLoading) {
 		_wikitButton = wikitButton;
 		_searchTerm = search;
 		_resultField = result;
 		_wikitContinue = wikitContinue;
+		_wikitLoading = wikitLoading;
 	}
 
 	@Override
-	protected Void call() throws Exception { // searches wikipedia for term
+	protected Void call() { // searches wikipedia for term
 
 		String term = "wikit " + _searchTerm + " | tee .description.txt";
 		CommandFactory command = new CommandFactory();
@@ -54,7 +57,9 @@ public class WikitSearchTask extends Task<Void> {
 					popup.setTitle("Term not found");
 					popup.setHeaderText("Please try another term"); popup.show();
 
-				} else { _wikitButton.setDisable(false); _resultField.setText(output.get(0));
+				} else { _wikitButton.setDisable(false); 
+				_resultField.setText(output.get(0));
+				_wikitLoading.setVisible(false);
 				_wikitContinue.setDisable(false);
 
 				}

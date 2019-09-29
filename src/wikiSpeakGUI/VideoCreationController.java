@@ -1,6 +1,5 @@
 package wikiSpeakGUI;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -123,7 +122,7 @@ public class VideoCreationController {
 
 
 	@FXML
-	private void handleSubmitCreation(ActionEvent event) throws IOException, InterruptedException {
+	private void handleSubmitCreation(ActionEvent event) {
 
 
 		// abort flag cancels creation generation when set to true

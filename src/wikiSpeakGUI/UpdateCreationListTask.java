@@ -33,7 +33,7 @@ public class UpdateCreationListTask extends Task<Void> {
 	}
 
 	@Override
-	protected Void call() throws Exception {
+	protected Void call() {
 		CommandFactory listFileCommand = new CommandFactory();
 		
 		

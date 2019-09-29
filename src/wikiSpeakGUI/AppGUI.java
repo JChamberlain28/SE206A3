@@ -32,15 +32,12 @@ public class AppGUI extends Application{
 			e.printStackTrace();
 		}
 		_jarDir = runnableJar.getParentFile().getPath();
-		
+
 		CommandFactory command = new CommandFactory();
-		
+
 		// makes bash scripts executable (in case their permissions are incorrect)
-		try {
-			command.sendCommand("chmod +x *.sh", false);
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-		}
+		command.sendCommand("chmod +x *.sh", false);
+
 
 
 
@@ -49,30 +46,38 @@ public class AppGUI extends Application{
 	}
 
 	@Override
-	public void start(Stage primaryStage) throws Exception {
+	public void start(Stage primaryStage) {
 
 		CommandFactory command = new CommandFactory();
+
 		command.sendCommand("mkdir -p creations" , false);
 
 		primaryStage.setTitle("VARpedia");
 
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(getClass().getResource("AppGUI.fxml"));
-		Parent layout = loader.load();
+
+		Parent layout = null;
+		try {
+			layout = loader.load();
+		} catch (IOException e2) {
+
+			e2.printStackTrace();
+		}
+
 		Scene scene = new Scene(layout);
 		primaryStage.setScene(scene);
 		primaryStage.show();
+
+
+
 
 		// remove .description.txt upon closing application to prevent left over files
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent e) {
-				try {
-					command.sendCommand("rm -f .description.txt", false);
-				} catch (IOException | InterruptedException e1) {
 
-					e1.printStackTrace();
-				}
+				command.sendCommand("rm -f .description.txt", false);
 				Platform.exit();
 			}
 		});

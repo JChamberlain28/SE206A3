@@ -15,6 +15,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.text.Text;
 
@@ -54,11 +55,16 @@ public class AppGUIController {
 	@FXML
 	private Text creationNoText;
 
+	@FXML
+	private ImageView wikitLoading;
+
 
 
 
 	@FXML
 	private void initialize() {
+
+		wikitLoading.setVisible(false);
 		wikitButton.setDisable(false);
 		continueButton.setDisable(true);
 		wikitResult.setWrapText(true);
@@ -105,7 +111,7 @@ public class AppGUIController {
 
 	// Changes scene to create scene
 	@FXML
-	private void handleContinueButton(ActionEvent event) throws IOException, InterruptedException { // handle io exception ####
+	private void handleContinueButton(ActionEvent event) {
 
 		// get command object for sending bash commands
 		CommandFactory command = new CommandFactory();
@@ -117,35 +123,20 @@ public class AppGUIController {
 		List<String> mktempResult = null;
 		List<String> numberedDescriptionOutput = null;
 
-		try {
-			mktempResult = command.sendCommand("mktemp -d TempCreation-XXXXX", false);
+		mktempResult = command.sendCommand("mktemp -d TempCreation-XXXXX", false);
 
-
-		}
-		catch (Exception e){  // check exception later e.g. read only directory
-			e.printStackTrace();
-		}
 
 		String tempFolder = mktempResult.get(0);
 
 
 		// process description so each sentence is on a new line.
-		try {
-			command.sendCommand("cat .description.txt " + " | sed 's/\\([.!?]\\) \\([[:upper:]]\\)/\\1\\n\\2/g' > " + String.format("%s/description.txt ", tempFolder), false);
-		}
-		catch (Exception e){
-			e.printStackTrace();
-		}
+		command.sendCommand("cat .description.txt " + " | sed 's/\\([.!?]\\) \\([[:upper:]]\\)/\\1\\n\\2/g' > " + String.format("%s/description.txt ", tempFolder), false);
+
 
 		// retrieve description with line numbers.
 		// send command 2nd parameter determines if each array item (sentence) should be separated by a new line
-		try {
-			numberedDescriptionOutput = command.sendCommand("cat " +  String.format("%s/description.txt ", tempFolder), true);
+		numberedDescriptionOutput = command.sendCommand("cat " +  String.format("%s/description.txt ", tempFolder), true);
 
-		}
-		catch (Exception e){
-			e.printStackTrace();
-		}
 
 
 
@@ -172,7 +163,7 @@ public class AppGUIController {
 	@FXML
 	private void handleWikiSearch(ActionEvent event) { 
 
-
+		wikitLoading.setVisible(true);
 		String searchTerm = wikitInput.getText();
 
 		if( searchTerm.trim().length() == 0) {
@@ -183,7 +174,7 @@ public class AppGUIController {
 		}
 		else {
 			wikitButton.setDisable(true);
-			Thread wikiSearchThread = new Thread(new WikitSearchTask(wikitButton, continueButton, searchTerm, wikitResult));
+			Thread wikiSearchThread = new Thread(new WikitSearchTask(wikitButton, continueButton, searchTerm, wikitResult, wikitLoading));
 			wikiSearchThread.start();
 		}
 
@@ -220,7 +211,7 @@ public class AppGUIController {
 
 
 	@FXML
-	private void handleDeleteButton(Event event) throws IOException, InterruptedException{ 
+	private void handleDeleteButton(Event event) { 
 
 
 		// get selected creation name to delete
@@ -250,7 +241,11 @@ public class AppGUIController {
 			Optional<ButtonType> result = popup.showAndWait();
 			if (result.get() == buttonTypeYes){
 				CommandFactory deleteCommand = new CommandFactory();
+
+
 				deleteCommand.sendCommand("rm \"creations/" + selection + ".mp4\"", false);
+
+
 				updateCreationList();
 			} else {
 				deleteButton.setDisable(false);

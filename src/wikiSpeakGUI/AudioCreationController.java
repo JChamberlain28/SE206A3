@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.Alert.AlertType;
 
 public class AudioCreationController {
@@ -40,7 +41,7 @@ public class AudioCreationController {
 	private ComboBox<String> voiceSelect;
 
 	@FXML
-	private Button submitCreationButton;
+	private Button nextButton;
 
 	@FXML
 	private TextArea numberedTextArea;
@@ -65,13 +66,21 @@ public class AudioCreationController {
 	private ListView<String> selectedAudio;
 
 	@FXML
+	private ImageView combineAudioLoading;
+
+	@FXML
 	private void initialize() {
 		//formats the TextArea
+		combineAudioLoading.setVisible(false);
 		numberedTextArea.setWrapText(true);
 		numberedTextArea.setEditable(true);
 		numberedTextArea.setStyle("-fx-control-inner-background: rgb(049,055,060); "
 				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
-		
+		voiceSelect.setStyle("-fx-background-color: rgb(049,055,060); -fx-control-inner-background: rgb(049,055,060); "
+				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
+		selectedAudio.setStyle("-fx-control-inner-background: rgb(049,055,060); "
+				+ "-fx-text-fill: rgb(255,255,255); -fx-focus-color: rgb(255,255,255);");
+
 		//adds voice options in a drop down box
 		voiceSelect.getItems().add("Default Voice");
 		voiceSelect.getItems().add("Akl_NZ(male) Voice");
@@ -88,9 +97,9 @@ public class AudioCreationController {
 		savedAudio.clear();
 
 		//disables buttons 
-		if(selectedAudio.getItems().size()==0) {
+		if((selectedAudio.getItems().size() == 0)) {
 			previewButton.setDisable(true);
-			submitCreationButton.setDisable(true);
+			nextButton.setDisable(true);
 			delButton.setDisable(true);
 			upButton.setDisable(true);
 			downButton.setDisable(true);	
@@ -113,7 +122,7 @@ public class AudioCreationController {
 
 	@FXML
 	// Changes scene to main scene
-	private void handleBackToMainView(ActionEvent event){ // handle io exception?
+	private void handleBackToMainView(ActionEvent event) {
 		//removes the temp directory
 		Thread delDir = new Thread(new RemoveDirTask(_tempDir));
 		delDir.start();
@@ -123,7 +132,8 @@ public class AudioCreationController {
 
 
 	@FXML
-	private void handleSubmitCreation(ActionEvent event){
+	private void handleNextButton(ActionEvent event) {
+		combineAudioLoading.setVisible(true);
 		CommandFactory command = new CommandFactory();
 		//error handler for creation without any audio selected
 		if (selectedAudio.getItems().size()==0) {
@@ -143,29 +153,26 @@ public class AudioCreationController {
 				order = order + _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".wav ";
 				savedAudio.add(selectedAudio.getItems().get(i));
 			}
-			
+
 			String cmd = "sox "+order+" "+ _tempDir +"/audio.wav";
 			savedText=numberedTextArea.getText();
-			
+
 			//combines the audio files in separate thread
 			Thread create = new Thread(() -> {
-				submitCreationButton.setDisable(true);
-				try {
-					command.sendCommand("rm " +_tempDir + "/audio.wav" , false);
-					command.sendCommand(cmd , false);
-					command.sendCommand("echo \""+savedText+"\" > "+_tempDir+"/description.txt" , false);
-					audioGenResult = command.sendCommand("echo $(soxi -D "+_tempDir+"/audio.wav)" , false);
-					submitCreationButton.setDisable(false);
-					Platform.runLater(() -> {
-						//changes scene when audio finished generating
-						VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
-						videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult);
-					});
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				nextButton.setDisable(true);
+
+				command.sendCommand("rm " +_tempDir + "/audio.wav" , false);
+				command.sendCommand(cmd , false);
+				command.sendCommand("echo \""+savedText+"\" > "+_tempDir+"/description.txt" , false);
+				audioGenResult = command.sendCommand("echo $(soxi -D "+_tempDir+"/audio.wav)" , false);
+				nextButton.setDisable(false);
+				Platform.runLater(() -> {
+					combineAudioLoading.setVisible(false);
+					//changes scene when audio finished generating
+					VideoCreationController videoCreationController = (VideoCreationController)ss.newScene("VideoCreationGUI.fxml", event);
+					videoCreationController.passInfo(_wikitTerm, _tempDir, audioGenResult);
+				});
+
 			});
 			create.setDaemon(true);
 			create.start();
@@ -176,7 +183,7 @@ public class AudioCreationController {
 
 
 	@FXML
-	private void handleSpeakPress(ActionEvent event){ 
+	private void handleSpeakPress(ActionEvent event) { 
 		String sel = numberedTextArea.getSelectedText();
 		String[] words = sel.split(" ");
 		//error handling for when no text selected for speak or when too much text selected
@@ -200,38 +207,42 @@ public class AudioCreationController {
 			CommandFactory command = new CommandFactory();
 			//creates and plays an audio file in separate thread
 			Thread speak= new Thread(() -> {
+
+
 				speakButton.setDisable(true);
 				cancelButton.setDisable(true);
 				previewButton.setDisable(true);
-				submitCreationButton.setDisable(true);
-				try {
-					command.sendCommand(cmd , false);
-					//error handling in case selected text is not able to generate audio
-					List<String> fileCreateCheck = command.sendCommand("text2wave -o "+ _tempDir +"/speakAudio.wav selectedText.txt " + voice 
-							+ " && " + "file " + _tempDir +"/speakAudio.wav", false);
-					System.out.println(fileCreateCheck);
-					if(fileCreateCheck.get(0).equals(_tempDir + "/speakAudio.wav: empty")) {
-						Platform.runLater(() -> {
-							Alert popup = new Alert(AlertType.INFORMATION);
-							popup.setTitle("Error");
-							popup.setHeaderText("Voice cannot pronounce a word in the selected text");
-							popup.show();
-						});
-					}else {
-						command.sendCommand("aplay "+ _tempDir +"/speakAudio.wav" , false);
-					}
-					command.sendCommand("rm " + _tempDir +"/speakAudio.wav" , false);
-					command.sendCommand("rm selectedText.txt" , false);
-					speakButton.setDisable(false);
-					previewButton.setDisable(false);
-					cancelButton.setDisable(false);
-					submitCreationButton.setDisable(false);
+				nextButton.setDisable(true);
 
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+
+				command.sendCommand(cmd , false);
+				//error handling in case selected text is not able to generate audio
+				List<String> fileCreateCheck = command.sendCommand("text2wave -o "+ _tempDir +"/speakAudio.wav selectedText.txt " + voice 
+						+ " && " + "file " + _tempDir +"/speakAudio.wav", false);
+				if(fileCreateCheck.get(0).equals(_tempDir + "/speakAudio.wav: empty")) {
+					Platform.runLater(() -> {
+						Alert popup = new Alert(AlertType.INFORMATION);
+						popup.setTitle("Voice Error");
+						popup.setHeaderText("Voice cannot pronounce the selected text");
+						popup.setContentText("Please try another voice or text selection");
+						popup.show();
+					});
+				}else {
+					command.sendCommand("aplay "+ _tempDir +"/speakAudio.wav" , false);
 				}
+				command.sendCommand("rm " + _tempDir +"/speakAudio.wav" , false);
+				command.sendCommand("rm selectedText.txt" , false);
+
+
+
+				if (selectedAudio.getItems().size() < 0) {
+					previewButton.setDisable(false);
+					nextButton.setDisable(false);
+				}
+
+				speakButton.setDisable(false);
+				cancelButton.setDisable(false);
+
 			});
 			speak.setDaemon(true);
 			speak.start();
@@ -239,7 +250,7 @@ public class AudioCreationController {
 	}
 
 	@FXML
-	private void handleAddPress(ActionEvent event){ 
+	private void handleAddPress(ActionEvent event) { 
 		String selected = numberedTextArea.getSelectedText();
 		String[] words = selected.split(" ");
 		//error handling for when no text selected for add or when too much text selected
@@ -254,11 +265,7 @@ public class AudioCreationController {
 			popup.setHeaderText("Please selected between 1-40 words");
 			popup.show();
 		}else {
-			previewButton.setDisable(false);
-			submitCreationButton.setDisable(false);
-			delButton.setDisable(false);
-			upButton.setDisable(false);
-			downButton.setDisable(false);
+
 			//if selected text is same as a previous one adds white space to it to help distinguish 
 			while (selectedAudio.getItems().contains(selected)) {
 				selected = selected + " ";
@@ -277,30 +284,33 @@ public class AudioCreationController {
 			//creates audio file of selected text in separate thread
 			Thread add = new Thread(() -> {
 				addButton.setDisable(true);
-				try {
-					command.sendCommand(cmd , false);
-					List<String> fileCreateCheck = command.sendCommand("text2wave -o " + _tempDir + "/" + name + ".wav selectedText.txt " 
-							+ voice + " && " + "file " + _tempDir +"/"+ name + ".wav" ,false);
 
-					Platform.runLater(() ->{
-						//error handler in case the selected text is not able to generate a audio file
-						if(fileCreateCheck.get(0).equals(_tempDir + "/" + name+".wav: empty")) {
-							Alert popup = new Alert(AlertType.INFORMATION);
-							popup.setTitle("Error");
-							popup.setHeaderText("Voice cannot pronounce a word in the selected text");
-							popup.show();
-						}else {
-							selectedAudio.getItems().add(sel);
-						}
-					});
-				
-					command.sendCommand("rm selectedText.txt" , false);
-					addButton.setDisable(false);
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				command.sendCommand(cmd , false);
+				List<String> fileCreateCheck = command.sendCommand("text2wave -o " + _tempDir + "/" + name + ".wav selectedText.txt " 
+						+ voice + " && " + "file " + _tempDir +"/"+ name + ".wav" ,false);
+
+				Platform.runLater(() ->{
+					//error handler in case the selected text is not able to generate a audio file
+					if(fileCreateCheck.get(0).equals(_tempDir + "/" + name+".wav: empty")) {
+
+						Alert popup = new Alert(AlertType.INFORMATION);
+						popup.setTitle("Voice Error");
+						popup.setHeaderText("Voice cannot pronounce the selected text");
+						popup.setContentText("Please try another voice or text selection");
+						popup.show();
+					}else {
+						selectedAudio.getItems().add(sel);
+						previewButton.setDisable(false);
+						nextButton.setDisable(false);
+						delButton.setDisable(false);
+						upButton.setDisable(false);
+						downButton.setDisable(false);
+					}
+				});
+
+				command.sendCommand("rm selectedText.txt" , false);
+				addButton.setDisable(false);
+
 			});
 			add.setDaemon(true);
 			add.start();
@@ -308,13 +318,13 @@ public class AudioCreationController {
 	}
 
 	@FXML
-	private void handleDelPress(ActionEvent event){ 
+	private void handleDelPress(ActionEvent event) { 
 		//removes selected audio from the audio list
 		String sel=selectedAudio.getSelectionModel().getSelectedItem();
 		selectedAudio.getItems().remove(sel);
 		if(selectedAudio.getItems().isEmpty()) {
 			previewButton.setDisable(true);
-			submitCreationButton.setDisable(true);
+			nextButton.setDisable(true);
 			delButton.setDisable(true);
 			upButton.setDisable(true);
 			downButton.setDisable(true);
@@ -322,7 +332,7 @@ public class AudioCreationController {
 	}
 
 	@FXML
-	private void upPress(ActionEvent event){ 
+	private void upPress(ActionEvent event) { 
 		int order = selectedAudio.getSelectionModel().getSelectedIndex();
 		//Switches the selected audio with the one above if it exists
 		if (order <= 0) {
@@ -357,7 +367,7 @@ public class AudioCreationController {
 			previewButton.setDisable(true);
 			speakButton.setDisable(true);
 			addButton.setDisable(true);
-			submitCreationButton.setDisable(true);
+			nextButton.setDisable(true);
 			delButton.setDisable(true);
 			upButton.setDisable(true);
 			downButton.setDisable(true);
@@ -365,17 +375,15 @@ public class AudioCreationController {
 			//loops through all audio files and plays them
 			for(int i=0; i<selectedAudio.getItems().size();i++) {
 				String cmd = "aplay "+ _tempDir + "/audio" + audioSentences.indexOf(selectedAudio.getItems().get(i)) + ".wav";
-				try {
-					command.sendCommand(cmd , false);
-				} catch (IOException | InterruptedException e) {
-					e.printStackTrace();
-				}
+
+				command.sendCommand(cmd , false);
+
 			}
 			//enable buttons 
 			previewButton.setDisable(false);
 			speakButton.setDisable(false);
 			addButton.setDisable(false);
-			submitCreationButton.setDisable(false);
+			nextButton.setDisable(false);
 			delButton.setDisable(false);
 			upButton.setDisable(false);
 			downButton.setDisable(false);

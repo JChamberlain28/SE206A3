@@ -24,7 +24,7 @@ public class GenerateVideoTask extends Task<Void>  {
 	}
 
 	@Override
-	protected Void call() throws Exception {
+	protected Void call() {
 		
 		
 		VideoCreationController.getCurrentlyGenerating().add(_creationName);

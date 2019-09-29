@@ -45,7 +45,7 @@ public class GetImagesTask extends Task<Void>{
 	}
 
 	@Override
-	protected Void call() throws Exception {
+	protected Void call() {
 		CommandFactory command = new CommandFactory();
 		command.sendCommand("rm -f ./" + _tempDir + "/*.jpg", false);
 		

@@ -11,7 +11,7 @@ public class RemoveDirTask  extends Task<Void> {
 	}
 
 	@Override
-	protected Void call() throws Exception { // removes specified directory and its contents
+	protected Void call() { // removes specified directory and its contents
 		CommandFactory command = new CommandFactory();
 		command.sendCommand("rm -r " + _dir, false);
 		return null;

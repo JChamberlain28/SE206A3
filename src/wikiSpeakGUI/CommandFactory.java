@@ -18,7 +18,7 @@ public class CommandFactory {
 	}
 
 	
-public List<String> sendCommand(String command, boolean addNewLines) throws IOException, InterruptedException{
+public List<String> sendCommand(String command, boolean addNewLines) {
 		
 		
 		List<String> output = new ArrayList<String>();
@@ -28,30 +28,35 @@ public List<String> sendCommand(String command, boolean addNewLines) throws IOEx
 		InputStream stderr = null;
 		
 		
+		try {
+			ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", command);
+			
+			// set directory for commands to be executed in to runnable jar directory
+			builder.directory(new File(AppGUI._jarDir));
+			process = builder.start();
+			stdout = process.getInputStream();
+			stderr = process.getErrorStream();
+			
+			
+			// read standard output and error from Bash
+			BufferedReader stdoutBuffered = new BufferedReader(new InputStreamReader(stdout));
+			String line = null;
+			while ((line = stdoutBuffered.readLine()) != null ) {
+				output.add(line);
+			}
+			
+			BufferedReader stderrBuffered = new BufferedReader(new InputStreamReader(stderr));
+			String lineErr = null;
+			while ((lineErr = stderrBuffered.readLine()) != null ) {
+				error.add(lineErr);
+			}
+			process.waitFor();
+			process.destroy();
+		}
+		catch (InterruptedException | IOException e) {
+			
+		}
 
-		ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", command);
-		
-		// set directory for commands to be executed in to runnable jar directory
-		builder.directory(new File(AppGUI._jarDir));
-		process = builder.start();
-		stdout = process.getInputStream();
-		stderr = process.getErrorStream();
-		
-		
-		// read standard output and error from Bash
-		BufferedReader stdoutBuffered = new BufferedReader(new InputStreamReader(stdout));
-		String line = null;
-		while ((line = stdoutBuffered.readLine()) != null ) {
-			output.add(line);
-		}
-		
-		BufferedReader stderrBuffered = new BufferedReader(new InputStreamReader(stderr));
-		String lineErr = null;
-		while ((lineErr = stderrBuffered.readLine()) != null ) {
-			error.add(lineErr);
-		}
-		process.waitFor();
-		process.destroy();
 
 		
 		List<String> result = new ArrayList<String>();
