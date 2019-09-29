@@ -341,6 +341,7 @@ public class AudioCreationController {
 			String temp = selectedAudio.getItems().get(order - 1);
 			selectedAudio.getItems().set(order - 1, selectedAudio.getSelectionModel().getSelectedItem());
 			selectedAudio.getItems().set(order, temp);
+			selectedAudio.getSelectionModel().select(order-1);
 		}
 
 	}
@@ -355,6 +356,7 @@ public class AudioCreationController {
 			String temp = selectedAudio.getItems().get(order + 1);
 			selectedAudio.getItems().set(order + 1, selectedAudio.getSelectionModel().getSelectedItem());
 			selectedAudio.getItems().set(order, temp);
+			selectedAudio.getSelectionModel().select(order+1);
 		}
 	}
 
