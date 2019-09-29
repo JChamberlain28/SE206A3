@@ -206,8 +206,20 @@ public class AudioCreationController {
 				submitCreationButton.setDisable(true);
 				try {
 					command.sendCommand(cmd , false);
-					command.sendCommand("text2wave -o "+ _tempDir +"/speakAudio.wav selectedText.txt " + voice , false);
-					command.sendCommand("aplay "+ _tempDir +"/speakAudio.wav" , false);
+					//command.sendCommand("text2wave -o "+ _tempDir +"/speakAudio.wav selectedText.txt " + voice , false);
+					List<String> fileCreateCheck = command.sendCommand("text2wave -o "+ _tempDir +"/speakAudio.wav selectedText.txt " + voice 
+							+ " && " + "file " + _tempDir +"/speakAudio.wav", false);
+					System.out.println(fileCreateCheck);
+					if(fileCreateCheck.get(0).equals(_tempDir + "/speakAudio.wav: empty")) {
+						Platform.runLater(() -> {
+							Alert popup = new Alert(AlertType.INFORMATION);
+							popup.setTitle("Error");
+							popup.setHeaderText("Voice cannot pronounce a word in the selected text");
+							popup.show();
+						});
+					}else {
+						command.sendCommand("aplay "+ _tempDir +"/speakAudio.wav" , false);
+					}
 					command.sendCommand("rm " + _tempDir +"/speakAudio.wav" , false);
 					command.sendCommand("rm selectedText.txt" , false);
 					speakButton.setDisable(false);
@@ -275,7 +287,7 @@ public class AudioCreationController {
 						if(fileCreateCheck.get(0).equals(_tempDir + "/" + name+".wav: empty")) {
 							Alert popup = new Alert(AlertType.INFORMATION);
 							popup.setTitle("Error");
-							popup.setHeaderText("Voice can not say a word in the selected sentence");
+							popup.setHeaderText("Voice cannot pronounce a word in the selected text");
 							popup.show();
 						}else {
 							selectedAudio.getItems().add(sel);
